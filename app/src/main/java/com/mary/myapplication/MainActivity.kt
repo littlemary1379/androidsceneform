@@ -220,14 +220,20 @@ class MainActivity : AppCompatActivity() {
                             var x: Float = motionEvent.x - downX
                             var y: Float = motionEvent.y - downY
 
+                            if(x > y) {
+                                DlogUtil.d(TAG, "x position 이동")
+                            } else {
+                                DlogUtil.d(TAG, "y position 이동")
+                            }
+
                             var percentX: Float = x / sceneView.width * 0.5f
                             var percentY: Float = y / sceneView.height * 0.5f
 
-                            xAngle = percentX * 360 * 0.25f + lastXAngle
-                            yAngle = percentY * 360 * 0.25f + lastYAngle
+                            xAngle = percentX * 360 * 0.3f + lastXAngle
+                            yAngle = percentY * 360 * 0.3f + lastYAngle
 
                             var xQuaternion = Quaternion.axisAngle(Vector3(0f, 1f, 0f), xAngle)
-                            var yQuaternion = Quaternion.axisAngle(Vector3(-cos(xAngle.toDouble()).toFloat(), 0f, sin(xAngle.toDouble()).toFloat()), yAngle)
+                            var yQuaternion = Quaternion.axisAngle(Vector3(cos(Math.toRadians(xAngle.toDouble())).toFloat(), 0f, sin(Math.toRadians(xAngle.toDouble())).toFloat()), yAngle)
                             var y1Quaternion = Quaternion.axisAngle(Vector3(1f, 0f, 0f), yAngle)
                             var y2Quaternion = Quaternion.axisAngle(Vector3(0f, 0f,-1f), yAngle)
                             var y3Quaternion = Quaternion.axisAngle(Vector3(-1f, 0f, 0f), yAngle)
@@ -249,7 +255,7 @@ class MainActivity : AppCompatActivity() {
 //                                Quaternion.
 //                            }
 
-                            transformableNode.localRotation = Quaternion.multiply(xQuaternion, y1Quaternion)
+                            transformableNode.localRotation = Quaternion.multiply(xQuaternion, yQuaternion)
                             //parentsTransformableNode.worldRotation = Quaternion.multiply(xQuaternion, yQuaternion)
 
 
