@@ -1,9 +1,16 @@
 package com.mary.myapplication
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Point
 import android.os.Bundle
+import android.view.Display
+import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -19,6 +26,7 @@ import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.*
 import com.google.ar.sceneform.ux.*
 import com.mary.myapplication.util.DlogUtil
+import com.mary.myapplication.util.LocationUtil
 import com.mary.myapplication.util.MathUtil
 import com.mary.myapplication.util.PermissionCheckUtil
 import kotlin.math.*
@@ -41,6 +49,15 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var anchorNode: AnchorNode
 
+    private var height = 50f
+    private var maxLength = 0f
+
+    private lateinit var centerPosition: Vector3
+    private lateinit var cameraPosition: Vector3
+    private var cameraClip: Float = 0f
+    private var cylinderDiameter = 0f
+    private var textSize = 0f
+
     private var lastDistance: Float = 0f
 
     private var downX: Float = 0f
@@ -52,14 +69,8 @@ class MainActivity : AppCompatActivity() {
     private var lastYAngle: Float = 0f
 
     private var isScale: Boolean = false
-    private var scale : Float = 1f
+    private var scale: Float = 1f
     private var percentageHeight: Float = 0f
-
-    private var firstVectorX : Float = 0f
-
-    private lateinit var secondVector: Vector3
-    private lateinit var thirdVector: Vector3
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,33 +81,61 @@ class MainActivity : AppCompatActivity() {
         permissionCheck()
         checkARcore()
 
-        var firstVector: Vector3 = Vector3(0f, 0f, 0f)
-        secondVector = Vector3(0f, 1f, 0f)
-        thirdVector= Vector3(1f, 1f, 0f)
-        var fourthVector: Vector3 = Vector3(1f, 0f, 0f)
 
-        var fifthVector: Vector3 = Vector3(0f, 0f, -1f)
-        var sixthVector: Vector3 = Vector3(0f, 1f, -1f)
-        var seventhVector: Vector3 = Vector3(1f, 1f, -1f)
-        var eightVector: Vector3 = Vector3(1f, 0f, -1f)
+        //정육면 입방체임
+        //입방체 바닥
+        var rawFirstVector: Vector3 = Vector3(0f, 0f, 0f)
+        var rawSecondVector = Vector3(50f, 0f, 0f)
+        var rawThirdVector = Vector3(50f, 0f, -50f)
+        var rawFourthVector: Vector3 = Vector3(0f, 0f, -50f)
 
-        var cameraX: Float = (firstVector.x + secondVector.x + thirdVector.x + fourthVector.x) / 4
-        var cameraY: Float = (firstVector.y + secondVector.y + thirdVector.y + fourthVector.y) / 4
+//        var fifthVector: Vector3 = Vector3(0f, 0f, -2f)
+//        var sixthVector: Vector3 = Vector3(0f, 1f, -2f)
+//        var seventhVector: Vector3 = Vector3(4f, 1f, -2f)
+//        var eightVector: Vector3 = Vector3(4f, 0f, -2f)
 
-        setCameraPosition(cameraX, cameraY, 1.5f)
+
+        maxLength = LocationUtil.longLength(
+            listOf(
+                rawFirstVector,
+                rawSecondVector,
+                rawThirdVector,
+                rawFourthVector
+            ), height
+        )
+
+        DlogUtil.d(
+            TAG,
+            "가장 큰 길이 $maxLength"
+        )
+
+
+        var firstVector = Vector3(rawFirstVector.x/maxLength, 0f, rawFirstVector.z/maxLength)
+        var secondVector = Vector3(rawSecondVector.x/maxLength, 0f, rawSecondVector.z/maxLength)
+        var thirdVector = Vector3(rawThirdVector.x/maxLength, 0f, rawThirdVector.z/maxLength)
+        var fourthVector = Vector3(rawFourthVector.x/maxLength, 0f, rawFourthVector.z/maxLength)
+
+        var fifthVector = Vector3(rawFirstVector.x/maxLength, height/maxLength, rawFirstVector.z/maxLength)
+        var sixthVector = Vector3(rawSecondVector.x/maxLength, height/maxLength, rawSecondVector.z/maxLength)
+        var seventhVector = Vector3(rawThirdVector.x/maxLength, height/maxLength, rawThirdVector.z/maxLength)
+        var eighthVector = Vector3(rawFourthVector.x/maxLength, height/maxLength, rawFourthVector.z/maxLength)
+
+
+        var vectorList: List<Vector3> = listOf(
+            firstVector,
+            secondVector,
+            thirdVector,
+            fourthVector,
+            fifthVector,
+            sixthVector,
+            seventhVector,
+            eighthVector
+        )
+        initCenterVector(vectorList)
+
+        setCameraPosition(cameraPosition)
 
         initSceneView()
-
-        //음 일단 비프로그래밍적으로 해보고, 다음 프로그래밍으로 해야지
-//        addPoint(firstVector)
-//        addPoint(secondVector)
-//        addPoint(thirdVector)
-//        addPoint(fourthVector)
-//
-//        addPoint(fifthVector)
-//        addPoint(sixthVector)
-//        addPoint(seventhVector)
-//        addPoint(eightVector)
 
 
         //선 긋기
@@ -107,37 +146,34 @@ class MainActivity : AppCompatActivity() {
 
         addLineBetweenPoints(fifthVector, sixthVector)
         addLineBetweenPoints(sixthVector, seventhVector)
-        addLineBetweenPoints(seventhVector, eightVector)
-        addLineBetweenPoints(eightVector, fifthVector)
+        addLineBetweenPoints(seventhVector, eighthVector)
+        addLineBetweenPoints(eighthVector, fifthVector)
 
         addLineBetweenPoints(firstVector, fifthVector)
         addLineBetweenPoints(secondVector, sixthVector)
         addLineBetweenPoints(seventhVector, thirdVector)
-        addLineBetweenPoints(fourthVector, eightVector)
+        addLineBetweenPoints(fourthVector, eighthVector)
 
         //위로 올라오는 선 긋기(y축만 차이나는 선끼리 찾아 벡터로 연결), y가 높은게 to로 들어가야 선이 연결됨.
         //전체 model height에서 15% 정도 선이 올라오도록 하는게 좋지 않을까?
         //여기는 계산을 해둔 상태인데, roomBean에 높이가 있으니까 lineLength는 빼도 될거 같아 :D
-        startLength(firstVector, secondVector)
-        startLength(fourthVector, thirdVector)
+
         startLength(fifthVector, sixthVector)
-        startLength(eightVector, seventhVector)
+        startLength(sixthVector, seventhVector)
+        startLength(seventhVector, eighthVector)
+        startLength(eighthVector, fifthVector)
 
         //y좌표가 일치하는 선끼리 긋기.
-
-        drawLengthLine(secondVector, thirdVector)
-        drawLengthLine(seventhVector, thirdVector)
-        drawLengthLine(secondVector, sixthVector)
+        drawLengthLine(fifthVector, sixthVector)
         drawLengthLine(sixthVector, seventhVector)
+        drawLengthLine(seventhVector, eighthVector)
+        drawLengthLine(eighthVector, fifthVector)
 
         //치수표기
-        setLengthLine(secondVector, thirdVector)
-        setLengthLine(seventhVector, thirdVector)
-        setLengthLine(secondVector, sixthVector)
+        setLengthLine(fifthVector, sixthVector)
         setLengthLine(sixthVector, seventhVector)
-
-
-
+        setLengthLine(seventhVector, eighthVector)
+        setLengthLine(eighthVector, fifthVector)
 
         setTransformableNode()
 
@@ -168,12 +204,109 @@ class MainActivity : AppCompatActivity() {
         sceneView.pause()
     }
 
+    private fun initCenterVector(vectorList: List<Vector3>) {
+        var cameraX = 0f
+        var cameraY = 0f
+        var cameraZ = 0f
+
+        var minZ = vectorList[0].z
+        var maxZ = vectorList[0].z
+        var minX = vectorList[0].x
+        var maxX = vectorList[0].x
+        var minY = vectorList[0].y
+        var maxY = vectorList[0].y
+
+
+        for (i in vectorList.indices) {
+            cameraX += vectorList[i].x
+            cameraY += vectorList[i].y
+            cameraZ += vectorList[i].z
+
+            if (maxZ < vectorList[i].z)
+                maxZ = vectorList[i].z
+            else if (minZ > vectorList[i].z) {
+                minZ = vectorList[i].z
+            }
+
+            if (minX > vectorList[i].x)
+                minX = vectorList[i].x
+            else if (maxX < vectorList[i].x)
+                maxX = vectorList[i].x
+
+            if (minY > vectorList[i].y)
+                minY = vectorList[i].y
+            else if (maxY < vectorList[i].y)
+                maxY = vectorList[i].y
+        }
+
+
+        cameraX /= vectorList.size
+        cameraY /= vectorList.size
+        cameraZ /= vectorList.size
+
+        centerPosition = Vector3(cameraX, cameraY, cameraZ)
+        cameraPosition = Vector3(
+            cameraX, cameraY,
+            (centerPosition.z) + centerPosition.x * 2.5f
+        )
+        DlogUtil.d(TAG, (centerPosition.z) + centerPosition.x * 2.5f)
+        cameraClip = MathUtil.calculationLength(
+            listOf(
+                centerPosition.x - vectorList[0].x,
+                centerPosition.y - vectorList[0].y,
+                centerPosition.z - vectorList[0].z
+            )
+        ) * 6
+
+
+        var deviceSize = Point()
+        display?.getRealSize(deviceSize)
+        val deviceWidth = deviceSize.x
+        val deviceHeight = deviceSize.y
+
+        if ((maxX - minX) < (maxZ - minZ) && (maxY - minY) < (maxZ - minZ)) {
+
+            DlogUtil.d(TAG, "z로 맞춰야 할듯?")
+            cylinderDiameter = (maxZ - minZ) * 2
+            textSize = (maxX - minX)
+
+            cameraPosition = Vector3(
+                cameraX, cameraY,
+                (centerPosition.z) + (maxZ - minZ)
+            )
+
+
+        } else if (deviceWidth / deviceHeight.toDouble() < (maxX - minX) / (maxY - minY)) {
+            DlogUtil.d(TAG, deviceWidth / deviceHeight.toDouble())
+            DlogUtil.d(TAG, (maxX - minX) / (maxY - minY))
+            DlogUtil.d(TAG, "X로 맞춰야 할듯?")
+            cylinderDiameter = (maxX - minX) * 2
+            textSize = (maxZ - minZ)
+        } else {
+            DlogUtil.d(TAG, deviceWidth / deviceHeight.toDouble())
+            DlogUtil.d(TAG, (maxX - minX) / (maxY - minY))
+            DlogUtil.d(TAG, "Y로 맞춰야 할듯??")
+            cylinderDiameter = (maxY - minY) * 2
+            textSize = (maxX - minX)
+        }
+
+    }
+
     private fun setCameraPosition(x: Float, y: Float, z: Float) {
         val camera = sceneView.scene.camera
         camera.worldPosition = Vector3(x, y, z)
     }
 
+    private fun setCameraPosition(vector3: Vector3) {
+        val camera = sceneView.scene.camera
+        camera.worldPosition = vector3
+        //근데 이거 값을 어떻게 적용하지?;;
+        camera.farClipPlane = cameraClip
+    }
+
     private fun initSceneView() {
+
+        DlogUtil.d(TAG, " ????????????????????? ")
 
         sceneView.renderer?.setClearColor(Color(android.graphics.Color.WHITE))
         transformationSystem =
@@ -182,15 +315,10 @@ class MainActivity : AppCompatActivity() {
         parentsTransformableNode = TransformableNode(transformationSystem)
         parentsTransformableNode.setParent(sceneView.scene)
 
-        //parentsTransformableNode.worldPosition = Vector3(0.1f, 0.1f, -0.6f)
-
         sceneView.scene.addOnPeekTouchListener { hitTestResult, motionEvent ->
 
 
             try {
-
-
-                transformationSystem.selectionVisualizer.removeSelectionVisual(transformableViewNode)
 
                 transformationSystem.onTouch(hitTestResult, motionEvent)
 
@@ -202,6 +330,7 @@ class MainActivity : AppCompatActivity() {
 
                 } else if (motionEvent.action == MotionEvent.ACTION_MOVE) {
                     if (motionEvent.pointerCount == 2) {
+                        DlogUtil.d(TAG, "손가락 2개")
 
                         isScale = true;
 
@@ -212,7 +341,7 @@ class MainActivity : AppCompatActivity() {
                             return@addOnPeekTouchListener
                         }
 
-                        if (abs(motionEvent.x - downX) > 40 || Math.abs(motionEvent.y - downY) > 40) {
+                        if (abs(motionEvent.x - downX) > 40 || abs(motionEvent.y - downY) > 40) {
 
                             DlogUtil.d(TAG, "쿼터니언")
 
@@ -220,46 +349,24 @@ class MainActivity : AppCompatActivity() {
                             var x: Float = motionEvent.x - downX
                             var y: Float = motionEvent.y - downY
 
-                            if(x > y) {
-                                DlogUtil.d(TAG, "x position 이동")
-                            } else {
-                                DlogUtil.d(TAG, "y position 이동")
-                            }
-
                             var percentX: Float = x / sceneView.width * 0.5f
                             var percentY: Float = y / sceneView.height * 0.5f
 
-                            xAngle = percentX * 360 * 0.3f + lastXAngle
-                            yAngle = percentY * 360 * 0.3f + lastYAngle
+                            xAngle = percentX * 360 * 0.4f + lastXAngle
+                            yAngle = percentY * 360 * 0.4f + lastYAngle
 
                             var xQuaternion = Quaternion.axisAngle(Vector3(0f, 1f, 0f), xAngle)
-                            var yQuaternion = Quaternion.axisAngle(Vector3(cos(Math.toRadians(xAngle.toDouble())).toFloat(), 0f, sin(Math.toRadians(xAngle.toDouble())).toFloat()), yAngle)
-                            var y1Quaternion = Quaternion.axisAngle(Vector3(1f, 0f, 0f), yAngle)
-                            var y2Quaternion = Quaternion.axisAngle(Vector3(0f, 0f,-1f), yAngle)
-                            var y3Quaternion = Quaternion.axisAngle(Vector3(-1f, 0f, 0f), yAngle)
-//                            DlogUtil.d(TAG, xAngle)
-//                            DlogUtil.d(TAG, "cos : "+cos(xAngle.toDouble()).toFloat())
-//                            DlogUtil.d(TAG, "sin : "+sin(xAngle.toDouble()).toFloat())
-//                            if(xAngle > -45f) {
-//                                DlogUtil.d(TAG, "-45 보다 큼")
-//                                parentsTransformableNode.worldRotation =
-//                                    Quaternion.multiply(xQuaternion, y1Quaternion)
-//                            } else if(xAngle > -135f && xAngle < -45f){
-//                                DlogUtil.d(TAG, "-45 이하 -135이상")
-//                                parentsTransformableNode.worldRotation =
-//                                    Quaternion.multiply(xQuaternion, y2Quaternion)
-//                            }else if(xAngle > -225f && xAngle < -135f){
-//                                DlogUtil.d(TAG, "-45 이하 -135이상")
-//                                parentsTransformableNode.worldRotation =
-//                                    Quaternion.multiply(xQuaternion, y3Quaternion)
-//                                Quaternion.
-//                            }
+                            //자바의 삼각함수는 라디언만 먹음
+                            var yQuaternion = Quaternion.axisAngle(
+                                Vector3(
+                                    cos(Math.toRadians(xAngle.toDouble())).toFloat(),
+                                    0f,
+                                    sin(Math.toRadians(xAngle.toDouble())).toFloat()
+                                ), yAngle
+                            )
 
-                            transformableNode.localRotation = Quaternion.multiply(xQuaternion, yQuaternion)
-                            //parentsTransformableNode.worldRotation = Quaternion.multiply(xQuaternion, yQuaternion)
-
-
-
+                            parentsTransformableNode.localRotation =
+                                Quaternion.multiply(xQuaternion, yQuaternion)
                         }
                     }
 
@@ -295,44 +402,19 @@ class MainActivity : AppCompatActivity() {
     private fun setTransformableNode() {
 
         parentsTransformableNode.select()
-        parentsTransformableNode.worldPosition = Vector3(0.5f, 0.5f, -0.5f)
-        transformableNode.worldPosition = Vector3(0.5f, 0.5f, -0.5f)
+        parentsTransformableNode.worldPosition = centerPosition
 
-        parentsTransformableNode.localScale = Vector3(1f, 1f, 1f)
+        transformableNode.worldPosition = centerPosition
+//        transformableNode.localScale=Vector3(1f, 1f, 1f)
+//        transformableNode.worldScale=Vector3(1f, 1f, 1f)
 
-        var scaleController =
-        ScaleController(parentsTransformableNode, transformationSystem.pinchRecognizer)
-        scaleController.minScale=1f
-        scaleController.maxScale=4f
 
-        var renderScaleController =
-            ScaleController(transformableNode, transformationSystem.pinchRecognizer)
-        renderScaleController.maxScale = 4f
-        renderScaleController.minScale = 1f
+        parentsTransformableNode.scaleController.minScale = 0.5f
+        parentsTransformableNode.scaleController.maxScale = 2f
 
-        var viewScaleController =
-            ScaleController(transformableViewNode, transformationSystem.pinchRecognizer)
-        viewScaleController.maxScale = 1.1f
-        viewScaleController.minScale = 1f
 
-        parentsTransformableNode.apply {
-            scaleController.isEnabled = true
-            rotationController.isEnabled = false
-            translationController.isEnabled = false
-        }
 
-        transformableNode.apply {
-            renderScaleController.isEnabled = true
-            rotationController.isEnabled = false
-            translationController.isEnabled = false
-        }
-
-        transformableViewNode.apply {
-            viewScaleController.isEnabled = false
-            rotationController.isEnabled = false
-            translationController.isEnabled = false
-        }
-
+        DlogUtil.d(TAG, parentsTransformableNode.worldScale)
 
     }
 
@@ -383,19 +465,15 @@ class MainActivity : AppCompatActivity() {
                 indicatorModel.worldPosition = Vector3(from.x, from.y, from.z)
 
 
-
             }
     }
 
 
     private fun addLineBetweenPoints(from: Vector3, to: Vector3) {
         // Node that is automatically positioned in world space based on the ARCore Anchor.
-
         transformableNode = TransformableNode(transformationSystem)
-
-        //transformableNode.select()
         transformableNode.setParent(parentsTransformableNode)
-        //transformableNode.worldPosition = Vector3(0.1f, 0.1f, -0.6f)
+
 
         // Compute a line's length
         val lineLength = Vector3.subtract(from, to).length()
@@ -408,7 +486,7 @@ class MainActivity : AppCompatActivity() {
             .thenAccept { material: Material? ->
                 // 2. make a model by the material
                 val model = ShapeFactory.makeCylinder(
-                    0.0025f, lineLength,
+                    0.0025f * cylinderDiameter, lineLength,
                     Vector3(0f, 0f, 0f), material
                 )
                 model.isShadowReceiver = false
@@ -417,6 +495,7 @@ class MainActivity : AppCompatActivity() {
                 // 3. make node
                 val node = Node()
                 node.renderable = model
+
                 node.setParent(transformableNode)
                 node.worldPosition = Vector3.add(to, from).scaled(.5f);
 
@@ -440,14 +519,10 @@ class MainActivity : AppCompatActivity() {
     private fun startLength(from: Vector3, to: Vector3) {
         // Node that is automatically positioned in world space based on the ARCore Anchor.
         transformableNode = TransformableNode(transformationSystem)
-
-        //transformableNode.select()
         transformableNode.setParent(parentsTransformableNode)
-        //transformableNode.worldPosition = Vector3(0.1f, 0.1f, -0.6f)
 
         // Compute a line's length
         percentageHeight = Vector3.subtract(from, to).length() * 0.15f
-
 
         // Prepare a color
         val colorOrange = Color(android.graphics.Color.parseColor("#1B1B1B"))
@@ -457,7 +532,7 @@ class MainActivity : AppCompatActivity() {
             .thenAccept { material: Material? ->
                 // 2. make a model by the material
                 val model = ShapeFactory.makeCylinder(
-                    0.0025f, percentageHeight,
+                    0.0020f * cylinderDiameter, percentageHeight,
                     Vector3(0f, 0f, 0f), material
                 )
                 model.isShadowReceiver = false
@@ -477,10 +552,7 @@ class MainActivity : AppCompatActivity() {
     private fun drawLengthLine(from: Vector3, to: Vector3) {
         // Node that is automatically positioned in world space based on the ARCore Anchor.
         transformableNode = TransformableNode(transformationSystem)
-
-        //transformableNode.select()
         transformableNode.setParent(parentsTransformableNode)
-        //transformableNode.worldPosition = Vector3(0.5f, 0.5f, -0.5f)
 
         // Compute a line's length
         val lineLength = Vector3.subtract(from, to).length()
@@ -497,7 +569,7 @@ class MainActivity : AppCompatActivity() {
             .thenAccept { material: Material? ->
                 // 2. make a model by the material
                 val model = ShapeFactory.makeCylinder(
-                    0.0025f, lineLength,
+                    0.0020f * cylinderDiameter, lineLength,
                     Vector3(0f, 0f, 0f), material
                 )
                 model.isShadowReceiver = false
@@ -524,6 +596,8 @@ class MainActivity : AppCompatActivity() {
                 )
 
             }
+
+        setLengthLine(from, to)
     }
 
 
@@ -531,17 +605,17 @@ class MainActivity : AppCompatActivity() {
         // Node that is automatically positioned in world space based on the ARCore Anchor.
 
         transformableViewNode = TransformableNode(transformationSystem)
+        //transformableViewNode.localPosition = centerPosition
+        //DlogUtil.d(TAG, centerPosition)
         transformableViewNode.setParent(parentsTransformableNode)
-
-        transformableViewNode.worldPosition = Vector3(0.5f, 0.5f, -0.5f)
 
 
         // Compute a line's length
         val lineLength = Vector3.subtract(from, to).length()
 
         //re-init axis
-        var axisFrom = Vector3(from.x, from.y + percentageHeight * 0.5f, from.z)
-        var axisTo = Vector3(to.x, to.y + percentageHeight * 0.5f, to.z)
+        var axisFrom = Vector3(from.x, from.y, from.z)
+        var axisTo = Vector3(to.x, to.y, to.z)
 
 
         //transformableViewNode.worldPosition = Vector3((axisFrom.x+axisTo.x)/2, (axisFrom.y+axisTo.y)/2, (axisFrom.z+axisTo.z)/2)
@@ -550,17 +624,32 @@ class MainActivity : AppCompatActivity() {
             .setView(this, R.layout.layout_t_length)
             .build()
             .thenAccept {
-
                 val indicatorModel = Node()
                 indicatorModel.setParent(transformableViewNode)
                 indicatorModel.renderable = it
-                indicatorModel.localPosition = Vector3((axisFrom.x+axisTo.x)/2-0.5f, ((axisFrom.y+axisTo.y)/2-0.5f+ lineLength*0.05).toFloat(), (axisFrom.z+axisTo.z)/2+0.5f)
+                indicatorModel.worldPosition = Vector3(
+                    (from.x + to.x) / 2,
+                    ((from.y + to.y) / 2 + lineLength * 0.05).toFloat(),
+                    (from.z + to.z) / 2
+                )
 
-                var textView : TextView = it.view.findViewById(R.id.textViewX)
-                textView.width = 120
-                var list : List<Float> = listOf(to.x-from.x, to.y-from.y, to.z-from.z)
+                var textView: TextView = it.view.findViewById(R.id.textViewX)
+                textView.textSize = 16f * textSize
+
+                var linearLayout: LinearLayout = it.view.findViewById(R.id.linearLayout)
+                var layoutParam: LinearLayout.LayoutParams =
+                    LinearLayout.LayoutParams((150 * textSize).toInt(), (70 * textSize).toInt())
+//                layoutParam.width = (50 * textSize).toInt()
+                linearLayout.layoutParams = layoutParam
+
+
+                DlogUtil.d(TAG, linearLayout.width)
+                DlogUtil.d(TAG, textSize)
+
+
+                var list: List<Float> = listOf(to.x*maxLength - from.x*maxLength, to.y*maxLength - from.y*maxLength, to.z*maxLength - from.z*maxLength)
                 textView.text = MathUtil.calculationLength(list).toString() + "m"
-                indicatorModel.localScale = Vector3(2f/scale, 2f/scale, 2f/scale)
+
                 //4. set rotation
                 val difference = Vector3.subtract(axisTo, axisFrom)
                 val directionFromTopToBottom = difference.normalized()
@@ -577,7 +666,6 @@ class MainActivity : AppCompatActivity() {
             }
 
     }
-
 
 
     //1. permission
