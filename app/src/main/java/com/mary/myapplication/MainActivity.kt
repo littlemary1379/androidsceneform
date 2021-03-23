@@ -164,22 +164,24 @@ class MainActivity : AppCompatActivity() {
         //전체 model height에서 15% 정도 선이 올라오도록 하는게 좋지 않을까?
         //여기는 계산을 해둔 상태인데, roomBean에 높이가 있으니까 lineLength는 빼도 될거 같아 :D
 
-        startLength(fifthVector, sixthVector)
-        startLength(sixthVector, seventhVector)
-        startLength(seventhVector, eighthVector)
-        startLength(eighthVector, fifthVector)
+//        startLength(fifthVector, sixthVector)
+//        startLength(sixthVector, seventhVector)
+//        startLength(seventhVector, eighthVector)
+//        startLength(eighthVector, fifthVector)
+//
+////        //y좌표가 일치하는 선끼리 긋기.
+//        drawLengthLine(fifthVector, sixthVector)
+//        drawLengthLine(sixthVector, seventhVector)
+//        drawLengthLine(seventhVector, eighthVector)
+//        drawLengthLine(eighthVector, fifthVector)
 
-        //y좌표가 일치하는 선끼리 긋기.
-        drawLengthLine(fifthVector, sixthVector)
-        drawLengthLine(sixthVector, seventhVector)
-        drawLengthLine(seventhVector, eighthVector)
-        drawLengthLine(eighthVector, fifthVector)
-
-        //치수표기
-        setLengthLine(fifthVector, sixthVector)
-        setLengthLine(sixthVector, seventhVector)
-        setLengthLine(seventhVector, eighthVector)
-        setLengthLine(eighthVector, fifthVector)
+        drawSizeModeling(ceilingVectorList)
+//
+//        //치수표기
+//        setLengthLine(fifthVector, sixthVector)
+//        setLengthLine(sixthVector, seventhVector)
+//        setLengthLine(seventhVector, eighthVector)
+//        setLengthLine(eighthVector, fifthVector)
 
         setTransformableNode()
 
@@ -255,7 +257,7 @@ class MainActivity : AppCompatActivity() {
             cameraX, cameraY,
             (centerPosition.z) + centerPosition.x * 2.5f
         )
-        DlogUtil.d(TAG, (centerPosition.z) + centerPosition.x * 2.5f)
+
         cameraClip = MathUtil.calculationLength(
             listOf(
                 centerPosition.x - vectorList[0].x,
@@ -320,8 +322,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun initSceneView() {
 
-        DlogUtil.d(TAG, " ????????????????????? ")
-
         sceneView.renderer?.setClearColor(Color(android.graphics.Color.WHITE))
         transformationSystem =
             TransformationSystem(resources.displayMetrics, FootprintSelectionVisualizer())
@@ -337,7 +337,6 @@ class MainActivity : AppCompatActivity() {
                 transformationSystem.onTouch(hitTestResult, motionEvent)
 
                 if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-                    DlogUtil.d(TAG, "이거니?")
 
                     downX = motionEvent.x
                     downY = motionEvent.y
@@ -398,9 +397,6 @@ class MainActivity : AppCompatActivity() {
 
                 }
 
-                //DlogUtil.d(TAG, "xaxis : ${transformableNode.worldPosition.x}")
-
-
             } catch (e: java.lang.Exception) {
                 e.printStackTrace()
             }
@@ -419,16 +415,9 @@ class MainActivity : AppCompatActivity() {
         parentsTransformableNode.worldPosition = centerPosition
 
         transformableNode.worldPosition = centerPosition
-//        transformableNode.localScale=Vector3(1f, 1f, 1f)
-//        transformableNode.worldScale=Vector3(1f, 1f, 1f)
-
 
         parentsTransformableNode.scaleController.minScale = 0.5f
         parentsTransformableNode.scaleController.maxScale = 2f
-
-
-
-        DlogUtil.d(TAG, parentsTransformableNode.worldScale)
 
     }
 
@@ -450,6 +439,21 @@ class MainActivity : AppCompatActivity() {
                 vectorList[i],
                 Vector3(vectorList[i].x, height / maxLength, vectorList[i].z)
             )
+        }
+    }
+
+    private fun drawSizeModeling(vectorList: List<Vector3>) {
+
+        for (i in vectorList.indices) {
+            if (i == vectorList.size - 1) {
+                startLength(vectorList[i], vectorList[0])
+                drawLengthLine(vectorList[i], vectorList[0])
+                setLengthLine(vectorList[i], vectorList[0])
+            } else {
+                startLength(vectorList[i], vectorList[i + 1])
+                drawLengthLine(vectorList[i], vectorList[i + 1])
+                setLengthLine(vectorList[i], vectorList[i + 1])
+            }
         }
     }
 
@@ -506,7 +510,7 @@ class MainActivity : AppCompatActivity() {
         transformableNode.setParent(parentsTransformableNode)
 
         // Compute a line's length
-        percentageHeight = Vector3.subtract(from, to).length() * 0.15f
+        percentageHeight = height / maxLength * 0.2f
 
         // Prepare a color
         val colorOrange = Color(android.graphics.Color.parseColor("#1B1B1B"))
@@ -544,6 +548,8 @@ class MainActivity : AppCompatActivity() {
         //re-init axis
         var axisFrom = Vector3(from.x, from.y + percentageHeight * 0.5f, from.z)
         var axisTo = Vector3(to.x, to.y + percentageHeight * 0.5f, to.z)
+        DlogUtil.d(TAG, "axixFrom.x : ${axisFrom.y} // axixFrom.x : ${axisTo.y}")
+        DlogUtil.d(TAG, "percentageHeight : $percentageHeight")
 
         // Prepare a color
         val colorOrange = Color(android.graphics.Color.parseColor("#1B1B1B"))
@@ -625,11 +631,6 @@ class MainActivity : AppCompatActivity() {
                     LinearLayout.LayoutParams((150 * textSize).toInt(), (70 * textSize).toInt())
 //                layoutParam.width = (50 * textSize).toInt()
                 linearLayout.layoutParams = layoutParam
-
-
-                DlogUtil.d(TAG, linearLayout.width)
-                DlogUtil.d(TAG, textSize)
-
 
                 var list: List<Float> = listOf(
                     to.x * maxLength - from.x * maxLength,
