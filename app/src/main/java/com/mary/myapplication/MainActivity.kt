@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var anchorNode: AnchorNode
 
-    private var height = 50f
+    private var height = 0f
     private var maxLength = 0f
 
     private lateinit var centerPosition: Vector3
@@ -85,15 +85,16 @@ class MainActivity : AppCompatActivity() {
         //정육면 입방체임
         //입방체 바닥
         var rawFirstVector: Vector3 = Vector3(0f, 0f, 0f)
-        var rawSecondVector = Vector3(50f, 0f, 0f)
-        var rawThirdVector = Vector3(50f, 0f, -50f)
-        var rawFourthVector: Vector3 = Vector3(0f, 0f, -50f)
+        var rawSecondVector = Vector3(30f, 0f, 0f)
+        var rawThirdVector = Vector3(30f, 0f, -20f)
+        var rawFourthVector: Vector3 = Vector3(0f, 0f, -20f)
 
 //        var fifthVector: Vector3 = Vector3(0f, 0f, -2f)
 //        var sixthVector: Vector3 = Vector3(0f, 1f, -2f)
 //        var seventhVector: Vector3 = Vector3(4f, 1f, -2f)
 //        var eightVector: Vector3 = Vector3(4f, 0f, -2f)
 
+        height = 10f
 
         maxLength = LocationUtil.longLength(
             listOf(
@@ -110,15 +111,25 @@ class MainActivity : AppCompatActivity() {
         )
 
 
-        var firstVector = Vector3(rawFirstVector.x/maxLength, 0f, rawFirstVector.z/maxLength)
-        var secondVector = Vector3(rawSecondVector.x/maxLength, 0f, rawSecondVector.z/maxLength)
-        var thirdVector = Vector3(rawThirdVector.x/maxLength, 0f, rawThirdVector.z/maxLength)
-        var fourthVector = Vector3(rawFourthVector.x/maxLength, 0f, rawFourthVector.z/maxLength)
+        var firstVector = Vector3(rawFirstVector.x / maxLength, 0f, rawFirstVector.z / maxLength)
+        var secondVector = Vector3(rawSecondVector.x / maxLength, 0f, rawSecondVector.z / maxLength)
+        var thirdVector = Vector3(rawThirdVector.x / maxLength, 0f, rawThirdVector.z / maxLength)
+        var fourthVector = Vector3(rawFourthVector.x / maxLength, 0f, rawFourthVector.z / maxLength)
 
-        var fifthVector = Vector3(rawFirstVector.x/maxLength, height/maxLength, rawFirstVector.z/maxLength)
-        var sixthVector = Vector3(rawSecondVector.x/maxLength, height/maxLength, rawSecondVector.z/maxLength)
-        var seventhVector = Vector3(rawThirdVector.x/maxLength, height/maxLength, rawThirdVector.z/maxLength)
-        var eighthVector = Vector3(rawFourthVector.x/maxLength, height/maxLength, rawFourthVector.z/maxLength)
+        var fifthVector =
+            Vector3(rawFirstVector.x / maxLength, height / maxLength, rawFirstVector.z / maxLength)
+        var sixthVector = Vector3(
+            rawSecondVector.x / maxLength,
+            height / maxLength,
+            rawSecondVector.z / maxLength
+        )
+        var seventhVector =
+            Vector3(rawThirdVector.x / maxLength, height / maxLength, rawThirdVector.z / maxLength)
+        var eighthVector = Vector3(
+            rawFourthVector.x / maxLength,
+            height / maxLength,
+            rawFourthVector.z / maxLength
+        )
 
 
         var vectorList: List<Vector3> = listOf(
@@ -138,21 +149,16 @@ class MainActivity : AppCompatActivity() {
         initSceneView()
 
 
-        //선 긋기
-        addLineBetweenPoints(firstVector, secondVector)
-        addLineBetweenPoints(secondVector, thirdVector)
-        addLineBetweenPoints(thirdVector, fourthVector)
-        addLineBetweenPoints(fourthVector, firstVector)
+        //모델 랜더링
+        val floorVectorList: List<Vector3> =
+            listOf(firstVector, secondVector, thirdVector, fourthVector)
+        drawModeling(floorVectorList)
+        drawPillar(floorVectorList)
 
-        addLineBetweenPoints(fifthVector, sixthVector)
-        addLineBetweenPoints(sixthVector, seventhVector)
-        addLineBetweenPoints(seventhVector, eighthVector)
-        addLineBetweenPoints(eighthVector, fifthVector)
+        val ceilingVectorList: List<Vector3> =
+            listOf(fifthVector, sixthVector, seventhVector, eighthVector)
+        drawModeling(ceilingVectorList)
 
-        addLineBetweenPoints(firstVector, fifthVector)
-        addLineBetweenPoints(secondVector, sixthVector)
-        addLineBetweenPoints(seventhVector, thirdVector)
-        addLineBetweenPoints(fourthVector, eighthVector)
 
         //위로 올라오는 선 긋기(y축만 차이나는 선끼리 찾아 벡터로 연결), y가 높은게 to로 들어가야 선이 연결됨.
         //전체 model height에서 15% 정도 선이 올라오도록 하는게 좋지 않을까?
@@ -270,24 +276,32 @@ class MainActivity : AppCompatActivity() {
             cylinderDiameter = (maxZ - minZ) * 2
             textSize = (maxX - minX)
 
-            cameraPosition = Vector3(
-                cameraX, cameraY,
-                (centerPosition.z) + (maxZ - minZ)
-            )
-
-
         } else if (deviceWidth / deviceHeight.toDouble() < (maxX - minX) / (maxY - minY)) {
             DlogUtil.d(TAG, deviceWidth / deviceHeight.toDouble())
             DlogUtil.d(TAG, (maxX - minX) / (maxY - minY))
             DlogUtil.d(TAG, "X로 맞춰야 할듯?")
             cylinderDiameter = (maxX - minX) * 2
             textSize = (maxZ - minZ)
+
+
         } else {
             DlogUtil.d(TAG, deviceWidth / deviceHeight.toDouble())
             DlogUtil.d(TAG, (maxX - minX) / (maxY - minY))
             DlogUtil.d(TAG, "Y로 맞춰야 할듯??")
             cylinderDiameter = (maxY - minY) * 2
             textSize = (maxX - minX)
+        }
+
+        if (cameraZ <= 0) {
+            cameraPosition = Vector3(
+                cameraX, cameraY,
+                1f
+            )
+        } else {
+            cameraPosition = Vector3(
+                cameraX, cameraY,
+                cameraZ * 2 + 1f
+            )
         }
 
     }
@@ -418,56 +432,26 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    //Modeling Test Code
-    private fun addPoint(from: Vector3) {
 
-        DlogUtil.d(TAG, "????????????????????????????????")
+    private fun drawModeling(vectorList: List<Vector3>) {
 
-        transformableNode = TransformableNode(transformationSystem)
-
-        transformableNode.select()
-        transformableNode.setParent(sceneView.scene)
-        transformableNode.worldPosition = Vector3(0.1f, 0.1f, -0.6f)
-
-        val color = Color(1f, 0f, 0f)
-
-//        ViewRenderable.builder()
-//            .setView(this, R.layout.test_layout)
-//            .build()
-//            .thenAccept {
-//
-//                val textViewX: TextView = it.view.findViewById(R.id.textViewX)
-//                textViewX.text = "X : ${from.x}"
-//                val textViewY: TextView = it.view.findViewById(R.id.textViewY)
-//                textViewY.text = "Y : ${from.y}"
-//                val textViewZ: TextView = it.view.findViewById(R.id.textViewZ)
-//                textViewZ.text = "Z : ${from.z}"
-//                val indicatorModel = Node()
-//                indicatorModel.setParent(anchorNode)
-//                indicatorModel.renderable = it
-//                indicatorModel.worldPosition = Vector3(from.x, from.y + 0.02f, from.z)
-//            }
-
-        MaterialFactory.makeOpaqueWithColor(this, color)
-            .thenAccept { material: Material? ->
-                // The sphere is in local coordinate space, so make the center 0,0,0
-                val sphere: Renderable = ShapeFactory.makeSphere(
-                    0.01f, Vector3.zero(),
-                    material
-                )
-
-
-                sphere.isShadowCaster = false
-                sphere.isShadowReceiver = false
-                val indicatorModel = Node()
-                indicatorModel.setParent(transformableNode)
-                indicatorModel.renderable = sphere
-                indicatorModel.worldPosition = Vector3(from.x, from.y, from.z)
-
-
+        for (i in vectorList.indices) {
+            if (i == vectorList.size - 1) {
+                addLineBetweenPoints(vectorList[i], vectorList[0])
+            } else {
+                addLineBetweenPoints(vectorList[i], vectorList[i + 1])
             }
+        }
     }
 
+    private fun drawPillar(vectorList: List<Vector3>) {
+        for (i in vectorList.indices) {
+            addLineBetweenPoints(
+                vectorList[i],
+                Vector3(vectorList[i].x, height / maxLength, vectorList[i].z)
+            )
+        }
+    }
 
     private fun addLineBetweenPoints(from: Vector3, to: Vector3) {
         // Node that is automatically positioned in world space based on the ARCore Anchor.
@@ -647,7 +631,11 @@ class MainActivity : AppCompatActivity() {
                 DlogUtil.d(TAG, textSize)
 
 
-                var list: List<Float> = listOf(to.x*maxLength - from.x*maxLength, to.y*maxLength - from.y*maxLength, to.z*maxLength - from.z*maxLength)
+                var list: List<Float> = listOf(
+                    to.x * maxLength - from.x * maxLength,
+                    to.y * maxLength - from.y * maxLength,
+                    to.z * maxLength - from.z * maxLength
+                )
                 textView.text = MathUtil.calculationLength(list).toString() + "m"
 
                 //4. set rotation
