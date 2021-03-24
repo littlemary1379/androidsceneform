@@ -55,6 +55,7 @@ class MainActivity : AppCompatActivity() {
 
     private var isScale: Boolean = false
     private var percentageHeight: Float = 0f
+    private var percentageWidth: Float = 0f
     private var percentageDoorHeight: Float = 0f
     private var percentageDoorWidth: Float = 0f
 
@@ -505,7 +506,7 @@ class MainActivity : AppCompatActivity() {
             ), Constant.Direction.Vertical
         )
 
-        drawVerticalLengthLine(
+        drawLengthLine(
             Vector3(
                 doorVectorList[0].x / maxLength,
                 doorHeight / maxLength,
@@ -514,10 +515,10 @@ class MainActivity : AppCompatActivity() {
                 doorVectorList[1].x / maxLength,
                 doorHeight / maxLength,
                 doorVectorList[1].z / maxLength
-            )
+            ), Constant.Direction.Horizontal
         )
 
-        drawVerticalLengthLine(
+        drawLengthLine(
             Vector3(
                 doorVectorList[1].x / maxLength,
                 doorHeight / maxLength,
@@ -527,7 +528,7 @@ class MainActivity : AppCompatActivity() {
                 doorVectorList[1].x / maxLength,
                 0f,
                 doorVectorList[1].z / maxLength
-            )
+            ), Constant.Direction.Vertical
         )
     }
 
@@ -536,12 +537,10 @@ class MainActivity : AppCompatActivity() {
         for (i in vectorList.indices) {
             if (i == vectorList.size - 1) {
                 startLength(vectorList[i], height, Constant.Direction.Horizontal)
-                drawVerticalLengthLine(vectorList[i], vectorList[0])
-                setLengthLine(vectorList[i], vectorList[0])
+                drawLengthLine(vectorList[i], vectorList[0], Constant.Direction.Horizontal)
             } else {
                 startLength(vectorList[i], height, Constant.Direction.Horizontal)
-                drawVerticalLengthLine(vectorList[i], vectorList[i + 1])
-                setLengthLine(vectorList[i], vectorList[i + 1])
+                drawLengthLine(vectorList[i], vectorList[i + 1], Constant.Direction.Horizontal)
             }
         }
     }
@@ -578,20 +577,35 @@ class MainActivity : AppCompatActivity() {
 
         if (drawType == "TYPE_ROOM") {
 
-            percentageHeight = measure / maxLength * 0.2f
-
             // Prepare a color
             val colorCode = Color(android.graphics.Color.parseColor("#888888"))
 
-            //Rendering
-            RenderingUtil.extendCylinderLineY(
-                this,
-                colorCode,
-                0.0015f * cylinderDiameter,
-                percentageHeight,
-                transformableNode,
-                to
-            )
+            if (direction == Constant.Direction.Horizontal) {
+
+                percentageHeight = measure / maxLength * 0.2f
+
+                //Rendering
+                RenderingUtil.extendCylinderLineY(
+                    this,
+                    colorCode,
+                    0.0015f * cylinderDiameter,
+                    percentageHeight,
+                    transformableNode,
+                    to
+                )
+            } else if (direction == Constant.Direction.Vertical) {
+                percentageWidth = measure / maxLength * 0.2f
+
+                //Rendering
+                RenderingUtil.extendCylinderLineX(
+                    this,
+                    colorCode,
+                    0.0015f * cylinderDiameter,
+                    percentageWidth,
+                    transformableNode,
+                    to
+                )
+            }
 
         } else if (drawType == "TYPE_DOOR") {
 
@@ -600,6 +614,7 @@ class MainActivity : AppCompatActivity() {
 
             if (direction == Constant.Direction.Horizontal) {
 
+                // Compute a line's length
                 percentageDoorHeight = measure / maxLength * 0.2f
 
                 //Rendering
@@ -617,9 +632,6 @@ class MainActivity : AppCompatActivity() {
                 // Compute a line's length
                 percentageDoorWidth = measure / maxLength * 0.2f
 
-                // Prepare a color
-                val colorCode = Color(android.graphics.Color.parseColor("#888888"))
-
                 //Rendering
                 RenderingUtil.extendCylinderLineX(
                     this,
@@ -634,13 +646,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun drawVerticalLengthLine(from: Vector3, to: Vector3) {
+    private fun drawLengthLine(from: Vector3, to: Vector3, direction: Constant.Direction) {
         // Node that is automatically positioned in world space based on the ARCore Anchor.
         transformableNode = TransformableNode(transformationSystem)
         transformableNode.setParent(parentsTransformableNode)
 
-        var axisFrom: Vector3
-        var axisTo: Vector3
+        var axisFrom: Vector3 = Vector3()
+        var axisTo: Vector3 = Vector3()
 
         // Compute a line's length
         val lineLength = Vector3.subtract(from, to).length()
@@ -650,8 +662,11 @@ class MainActivity : AppCompatActivity() {
 
         //re-init axis
         if (drawType == "TYPE_ROOM") {
-            axisFrom = Vector3(from.x, from.y + percentageHeight * 0.5f, from.z)
-            axisTo = Vector3(to.x, to.y + percentageHeight * 0.5f, to.z)
+
+            if (direction == Constant.Direction.Horizontal) {
+                axisFrom = Vector3(from.x, from.y + percentageHeight * 0.5f, from.z)
+                axisTo = Vector3(to.x, to.y + percentageHeight * 0.5f, to.z)
+            }
 
             //Rendering
             RenderingUtil.drawCylinderLine(
@@ -663,9 +678,18 @@ class MainActivity : AppCompatActivity() {
                 axisFrom,
                 axisTo
             )
+
         } else if (drawType == "TYPE_DOOR") {
-            axisFrom = Vector3(from.x, from.y + percentageDoorHeight * 0.5f, from.z)
-            axisTo = Vector3(to.x, from.y + percentageDoorHeight * 0.5f, to.z)
+
+            if (direction == Constant.Direction.Horizontal) {
+                axisFrom = Vector3(from.x, from.y + percentageDoorHeight * 0.5f, from.z)
+                axisTo = Vector3(to.x, to.y + percentageDoorHeight * 0.5f, to.z)
+
+            } else if (direction == Constant.Direction.Vertical) {
+                DlogUtil.d(TAG, "어엥?")
+                axisFrom = Vector3(from.x + percentageDoorWidth * 0.5f, from.y, from.z)
+                axisTo = Vector3(to.x + percentageDoorWidth * 0.5f, to.y, to.z)
+            }
 
             //Rendering
             RenderingUtil.drawCylinderLine(
@@ -677,12 +701,12 @@ class MainActivity : AppCompatActivity() {
                 axisFrom,
                 axisTo
             )
+
         }
-        setLengthLine(from, to)
+        setLengthLine(from, to, direction)
     }
 
-
-    private fun setLengthLine(from: Vector3, to: Vector3) {
+    private fun setLengthLine(from: Vector3, to: Vector3, direction: Constant.Direction) {
 
         // Node that is automatically positioned in world space based on the ARCore Anchor.
         transformableViewNode = TransformableNode(transformationSystem)
@@ -697,8 +721,31 @@ class MainActivity : AppCompatActivity() {
 
         var lengthText = (round(MathUtil.calculationLength(list) * 100) / 100).toString() + "m"
 
-        //Rendering
-        RenderingUtil.drawTextView(this, percentageHeight, lengthText, transformableNode, from, to)
+        if (direction == Constant.Direction.Horizontal) {
+            //Rendering
+            RenderingUtil.drawTextView(
+                this,
+                centerPosition,
+                percentageHeight,
+                lengthText,
+                transformableNode,
+                from,
+                to,
+                Constant.Direction.Horizontal
+            )
+        } else if (direction == Constant.Direction.Vertical) {
+            //Rendering
+            RenderingUtil.drawTextView(
+                this,
+                centerPosition,
+                percentageHeight,
+                lengthText,
+                transformableNode,
+                from,
+                to,
+                Constant.Direction.Vertical
+            )
+        }
     }
 
     //1. permission

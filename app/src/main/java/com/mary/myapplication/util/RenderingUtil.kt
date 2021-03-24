@@ -126,11 +126,13 @@ object RenderingUtil {
 
     fun drawTextView(
         context: Context,
+        centerPosition : Vector3,
         height: Float,
-        text : String,
+        text: String,
         parentNode: TransformableNode,
         from: Vector3,
-        to: Vector3
+        to: Vector3,
+        direction: Constant.Direction
     ) {
         ViewRenderable.builder()
             .setView(context, com.mary.myapplication.R.layout.layout_t_length)
@@ -139,15 +141,16 @@ object RenderingUtil {
                 val indicatorModel = Node()
                 indicatorModel.setParent(parentNode)
                 indicatorModel.renderable = it
-                indicatorModel.worldPosition = Vector3(
-                    (from.x + to.x) / 2,
-                    ((from.y + to.y) / 2 + height * 0.1).toFloat(),
-                    (from.z + to.z) / 2
+                indicatorModel.localPosition = Vector3(
+                    (from.x + to.x) / 2 - centerPosition.x,
+                    ((from.y + to.y) / 2 + height * 0.3).toFloat() - centerPosition.y,
+                    (from.z + to.z) / 2 - centerPosition.z
                 )
 
                 var textView: TextView = it.view.findViewById(com.mary.myapplication.R.id.textViewX)
 
-                var linearLayout: LinearLayout = it.view.findViewById(com.mary.myapplication.R.id.linearLayout)
+                var linearLayout: LinearLayout =
+                    it.view.findViewById(com.mary.myapplication.R.id.linearLayout)
                 var layoutParam: LinearLayout.LayoutParams =
                     LinearLayout.LayoutParams(250, 70)
 
@@ -158,15 +161,32 @@ object RenderingUtil {
                 val difference = Vector3.subtract(to, from)
                 val directionFromTopToBottom = difference.normalized()
 
-                val rotationFromAToB =
-                    Quaternion.lookRotation(
-                        directionFromTopToBottom,
-                        Vector3.up()
+                if (direction == Constant.Direction.Horizontal) {
+
+                    val rotationFromAToB =
+                        Quaternion.lookRotation(
+                            directionFromTopToBottom,
+                            Vector3.up()
+                        )
+
+                    indicatorModel.worldRotation = Quaternion.multiply(
+                        rotationFromAToB,
+                        Quaternion.axisAngle(Vector3(0.0f, 1.0f, 0.0f), 90f)
                     )
-                indicatorModel.worldRotation = Quaternion.multiply(
-                    rotationFromAToB,
-                    Quaternion.axisAngle(Vector3(0.0f, 1.0f, 0.0f), 90f)
-                )
+                } else if(direction == Constant.Direction.Vertical) {
+
+                    val rotationFromAToB =
+                        Quaternion.lookRotation(
+                            Vector3(0f, 0f, 0f),
+                            Vector3.up()
+                        )
+
+                    indicatorModel.worldRotation = Quaternion.multiply(
+                        rotationFromAToB,
+                        Quaternion.axisAngle(Vector3(
+                            0.0f, 0.0f, 1.0f), 270f)
+                    )
+                }
             }
     }
 }
