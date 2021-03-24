@@ -507,6 +507,18 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         )
+
+        drawLengthLine(
+            Vector3(
+                doorVectorList[0].x / maxLength,
+                doorHeight / maxLength,
+                doorVectorList[0].z / maxLength
+            ), Vector3(
+                doorVectorList[1].x / maxLength,
+                doorHeight / maxLength,
+                doorVectorList[1].z / maxLength
+            )
+        )
     }
 
     private fun drawSizeModeling(vectorList: List<Vector3>) {
@@ -536,7 +548,15 @@ class MainActivity : AppCompatActivity() {
         // Prepare a color
         val colorCode = Color(android.graphics.Color.parseColor(colorCode))
 
-        RenderingUtil.drawCylinderLine(this, colorCode, 0.0025f * cylinderDiameter, lineLength, transformableNode, from, to)
+        RenderingUtil.drawCylinderLine(
+            this,
+            colorCode,
+            0.0025f * cylinderDiameter,
+            lineLength,
+            transformableNode,
+            from,
+            to
+        )
     }
 
     private fun startHorizontalLength(to: Vector3, height: Float) {
@@ -554,7 +574,14 @@ class MainActivity : AppCompatActivity() {
             val colorCode = Color(android.graphics.Color.parseColor("#888888"))
 
             //Rendering
-            RenderingUtil.extendCylinderLineY(this, colorCode, 0.0015f * cylinderDiameter, percentageHeight, transformableNode, to)
+            RenderingUtil.extendCylinderLineY(
+                this,
+                colorCode,
+                0.0015f * cylinderDiameter,
+                percentageHeight,
+                transformableNode,
+                to
+            )
 
         } else if (drawType == "TYPE_DOOR") {
 
@@ -564,7 +591,14 @@ class MainActivity : AppCompatActivity() {
             val colorCode = Color(android.graphics.Color.parseColor("#888888"))
 
             //Rendering
-            RenderingUtil.extendCylinderLineY(this, colorCode, 0.0015f * cylinderDiameter, percentageDoorHeight, transformableNode, to)
+            RenderingUtil.extendCylinderLineY(
+                this,
+                colorCode,
+                0.0015f * cylinderDiameter,
+                percentageDoorHeight,
+                transformableNode,
+                to
+            )
 
         }
     }
@@ -573,8 +607,6 @@ class MainActivity : AppCompatActivity() {
         // Node that is automatically positioned in world space based on the ARCore Anchor.
         transformableNode = TransformableNode(transformationSystem)
         transformableNode.setParent(parentsTransformableNode)
-
-
 
         // todo
         if (drawType == "TYPE_ROOM") {
@@ -586,7 +618,14 @@ class MainActivity : AppCompatActivity() {
             val colorCode = Color(android.graphics.Color.parseColor("#888888"))
 
             //Rendering
-            RenderingUtil.extendCylinderLineX(this, colorCode, 0.0015f * cylinderDiameter, percentageDoorWidth, transformableNode, to)
+            RenderingUtil.extendCylinderLineX(
+                this,
+                colorCode,
+                0.0015f * cylinderDiameter,
+                percentageDoorWidth,
+                transformableNode,
+                to
+            )
 
         } else if (drawType == "TYPE_DOOR") {
 
@@ -597,7 +636,14 @@ class MainActivity : AppCompatActivity() {
             val colorCode = Color(android.graphics.Color.parseColor("#888888"))
 
             //Rendering
-            RenderingUtil.extendCylinderLineX(this, colorCode, 0.0015f * cylinderDiameter, percentageDoorWidth, transformableNode, to)
+            RenderingUtil.extendCylinderLineX(
+                this,
+                colorCode,
+                0.0015f * cylinderDiameter,
+                percentageDoorWidth,
+                transformableNode,
+                to
+            )
         }
     }
 
@@ -606,127 +652,67 @@ class MainActivity : AppCompatActivity() {
         transformableNode = TransformableNode(transformationSystem)
         transformableNode.setParent(parentsTransformableNode)
 
-        var axisFrom: Vector3 = Vector3()
-        var axisTo: Vector3 = Vector3()
+        var axisFrom: Vector3
+        var axisTo: Vector3
 
         // Compute a line's length
         val lineLength = Vector3.subtract(from, to).length()
+
+        // Prepare a color
+        val colorCode = Color(android.graphics.Color.parseColor("#888888"))
 
         //re-init axis
         if (drawType == "TYPE_ROOM") {
             axisFrom = Vector3(from.x, from.y + percentageHeight * 0.5f, from.z)
             axisTo = Vector3(to.x, to.y + percentageHeight * 0.5f, to.z)
+
+            //Rendering
+            RenderingUtil.drawCylinderLine(
+                this,
+                colorCode,
+                0.0012f * cylinderDiameter,
+                lineLength,
+                transformableNode,
+                axisFrom,
+                axisTo
+            )
         } else if (drawType == "TYPE_DOOR") {
-            axisFrom = Vector3(from.x + percentageDoorWidth * 0.5f, from.y, from.z)
-            axisTo = Vector3(to.x + percentageDoorWidth * 0.5f, to.y, to.z)
+            axisFrom = Vector3(from.x, from.y + percentageDoorHeight * 0.5f, from.z)
+            axisTo = Vector3(to.x, from.y + percentageDoorHeight * 0.5f, to.z)
+
+            //Rendering
+            RenderingUtil.drawCylinderLine(
+                this,
+                colorCode,
+                0.0010f * cylinderDiameter,
+                lineLength,
+                transformableNode,
+                axisFrom,
+                axisTo
+            )
         }
-
-        // Prepare a color
-        val colorOrange = Color(android.graphics.Color.parseColor("#888888"))
-
-        // 1. make a material by the color
-        MaterialFactory.makeOpaqueWithColor(this, colorOrange)
-            .thenAccept { material: Material? ->
-                // 2. make a model by the material
-                val model = ShapeFactory.makeCylinder(
-                    0.0020f * cylinderDiameter, lineLength,
-                    Vector3(0f, 0f, 0f), material
-                )
-                model.isShadowReceiver = false
-                model.isShadowCaster = true
-
-                // 3. make node
-                val node = Node()
-                node.renderable = model
-                node.setParent(transformableNode)
-                node.worldPosition = Vector3.add(axisTo, axisFrom).scaled(.5f);
-
-
-                //4. set rotation
-                val difference = Vector3.subtract(axisTo, axisFrom)
-                val directionFromTopToBottom = difference.normalized()
-                val rotationFromAToB =
-                    Quaternion.lookRotation(
-                        directionFromTopToBottom,
-                        Vector3.up()
-                    )
-                node.worldRotation = Quaternion.multiply(
-                    rotationFromAToB,
-                    Quaternion.axisAngle(Vector3(1.0f, 0.0f, 0.0f), 90f)
-                )
-
-            }
-
         setLengthLine(from, to)
     }
 
 
     private fun setLengthLine(from: Vector3, to: Vector3) {
-        // Node that is automatically positioned in world space based on the ARCore Anchor.
 
+        // Node that is automatically positioned in world space based on the ARCore Anchor.
         transformableViewNode = TransformableNode(transformationSystem)
-        //transformableViewNode.localPosition = centerPosition
-        //DlogUtil.d(TAG, centerPosition)
         transformableViewNode.setParent(parentsTransformableNode)
 
+        //set Text
+        var list: List<Float> = listOf(
+            to.x * maxLength - from.x * maxLength,
+            to.y * maxLength - from.y * maxLength,
+            to.z * maxLength - from.z * maxLength
+        )
 
-        // Compute a line's length
-        val lineLength = Vector3.subtract(from, to).length()
+        var lengthText = (round(MathUtil.calculationLength(list) * 100) / 100).toString() + "m"
 
-        //re-init axis
-        var axisFrom = Vector3(from.x, from.y, from.z)
-        var axisTo = Vector3(to.x, to.y, to.z)
-
-
-        //transformableViewNode.worldPosition = Vector3((axisFrom.x+axisTo.x)/2, (axisFrom.y+axisTo.y)/2, (axisFrom.z+axisTo.z)/2)
-
-        ViewRenderable.builder()
-            .setView(this, R.layout.layout_t_length)
-            .build()
-            .thenAccept {
-                val indicatorModel = Node()
-                indicatorModel.setParent(transformableViewNode)
-                indicatorModel.renderable = it
-                indicatorModel.worldPosition = Vector3(
-                    (from.x + to.x) / 2,
-                    ((from.y + to.y) / 2 + lineLength * 0.05).toFloat(),
-                    (from.z + to.z) / 2
-                )
-
-                var textView: TextView = it.view.findViewById(R.id.textViewX)
-                textView.textSize = 16f * textSize
-
-                var linearLayout: LinearLayout = it.view.findViewById(R.id.linearLayout)
-                var layoutParam: LinearLayout.LayoutParams =
-                    LinearLayout.LayoutParams((200 * textSize).toInt(), (70 * textSize).toInt())
-//                layoutParam.width = (50 * textSize).toInt()
-                linearLayout.layoutParams = layoutParam
-
-                var list: List<Float> = listOf(
-                    to.x * maxLength - from.x * maxLength,
-                    to.y * maxLength - from.y * maxLength,
-                    to.z * maxLength - from.z * maxLength
-                )
-                textView.text =
-                    (round(MathUtil.calculationLength(list) * 100) / 100).toString() + "m"
-
-                //4. set rotation
-                val difference = Vector3.subtract(axisTo, axisFrom)
-                val directionFromTopToBottom = difference.normalized()
-
-                val rotationFromAToB =
-                    Quaternion.lookRotation(
-                        directionFromTopToBottom,
-                        Vector3.up()
-                    )
-                indicatorModel.worldRotation = Quaternion.multiply(
-                    rotationFromAToB,
-                    Quaternion.axisAngle(Vector3(0.0f, 1.0f, 0.0f), 90f)
-                )
-            }
-
+        //Rendering
+        RenderingUtil.drawTextView(this, percentageHeight, lengthText, transformableNode, from, to)
     }
-
 
     //1. permission
     private fun permissionCheck() {
@@ -786,9 +772,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun motionEventDistance(event: MotionEvent): Float {
-        val x = event.getX(0) - event.getX(1)
-        val y = event.getY(0) - event.getY(1)
-        return sqrt((x * x + y * y).toDouble()).toFloat()
-    }
 }

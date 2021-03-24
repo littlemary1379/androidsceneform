@@ -1,13 +1,12 @@
 package com.mary.myapplication.util
 
 import android.content.Context
+import android.widget.LinearLayout
+import android.widget.TextView
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
-import com.google.ar.sceneform.rendering.Color
-import com.google.ar.sceneform.rendering.Material
-import com.google.ar.sceneform.rendering.MaterialFactory
-import com.google.ar.sceneform.rendering.ShapeFactory
+import com.google.ar.sceneform.rendering.*
 import com.google.ar.sceneform.ux.TransformableNode
 
 object RenderingUtil {
@@ -121,6 +120,52 @@ object RenderingUtil {
                 node.worldRotation = Quaternion.multiply(
                     rotationFromAToB,
                     Quaternion.axisAngle(Vector3(1.0f, 0.0f, 0.0f), 90f)
+                )
+            }
+    }
+
+    fun drawTextView(
+        context: Context,
+        height: Float,
+        text : String,
+        parentNode: TransformableNode,
+        from: Vector3,
+        to: Vector3
+    ) {
+        ViewRenderable.builder()
+            .setView(context, com.mary.myapplication.R.layout.layout_t_length)
+            .build()
+            .thenAccept {
+                val indicatorModel = Node()
+                indicatorModel.setParent(parentNode)
+                indicatorModel.renderable = it
+                indicatorModel.worldPosition = Vector3(
+                    (from.x + to.x) / 2,
+                    ((from.y + to.y) / 2 + height * 0.1).toFloat(),
+                    (from.z + to.z) / 2
+                )
+
+                var textView: TextView = it.view.findViewById(com.mary.myapplication.R.id.textViewX)
+
+                var linearLayout: LinearLayout = it.view.findViewById(com.mary.myapplication.R.id.linearLayout)
+                var layoutParam: LinearLayout.LayoutParams =
+                    LinearLayout.LayoutParams(250, 70)
+
+                linearLayout.layoutParams = layoutParam
+                textView.text = text
+
+                //4. set rotation
+                val difference = Vector3.subtract(to, from)
+                val directionFromTopToBottom = difference.normalized()
+
+                val rotationFromAToB =
+                    Quaternion.lookRotation(
+                        directionFromTopToBottom,
+                        Vector3.up()
+                    )
+                indicatorModel.worldRotation = Quaternion.multiply(
+                    rotationFromAToB,
+                    Quaternion.axisAngle(Vector3(0.0f, 1.0f, 0.0f), 90f)
                 )
             }
     }
