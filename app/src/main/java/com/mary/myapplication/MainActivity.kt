@@ -5,13 +5,10 @@ import android.content.pm.PackageManager
 import android.graphics.Point
 import android.os.Bundle
 import android.view.MotionEvent
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.ar.core.ArCoreApk
 import com.google.ar.core.exceptions.*
-import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.SceneView
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
@@ -464,23 +461,23 @@ class MainActivity : AppCompatActivity() {
         )
 
         //draw Size
-        startHorizontalLength(
+        startLength(
             Vector3(
                 doorVectorList[0].x / maxLength,
                 doorHeight / maxLength,
                 doorVectorList[0].z / maxLength
-            ), doorHeight
+            ), doorHeight, Constant.Direction.Horizontal
         )
 
-        startHorizontalLength(
+        startLength(
             Vector3(
                 doorVectorList[1].x / maxLength,
                 doorHeight / maxLength,
                 doorVectorList[1].z / maxLength
-            ), doorHeight
+            ), doorHeight, Constant.Direction.Horizontal
         )
 
-        startVerticalLength(
+        startLength(
             Vector3(
                 doorVectorList[1].x / maxLength,
                 doorHeight / maxLength,
@@ -491,10 +488,10 @@ class MainActivity : AppCompatActivity() {
                     (doorVectorList[1].x - doorVectorList[0].x),
                     (doorVectorList[1].y - doorVectorList[0].y)
                 )
-            )
+            ), Constant.Direction.Vertical
         )
 
-        startVerticalLength(
+        startLength(
             Vector3(
                 doorVectorList[1].x / maxLength,
                 0f,
@@ -505,10 +502,10 @@ class MainActivity : AppCompatActivity() {
                     (doorVectorList[1].x - doorVectorList[0].x),
                     (doorVectorList[1].y - doorVectorList[0].y)
                 )
-            )
+            ), Constant.Direction.Vertical
         )
 
-        drawLengthLine(
+        drawVerticalLengthLine(
             Vector3(
                 doorVectorList[0].x / maxLength,
                 doorHeight / maxLength,
@@ -519,18 +516,31 @@ class MainActivity : AppCompatActivity() {
                 doorVectorList[1].z / maxLength
             )
         )
+
+        drawVerticalLengthLine(
+            Vector3(
+                doorVectorList[1].x / maxLength,
+                doorHeight / maxLength,
+                doorVectorList[1].z / maxLength
+            ),
+            Vector3(
+                doorVectorList[1].x / maxLength,
+                0f,
+                doorVectorList[1].z / maxLength
+            )
+        )
     }
 
     private fun drawSizeModeling(vectorList: List<Vector3>) {
 
         for (i in vectorList.indices) {
             if (i == vectorList.size - 1) {
-                startHorizontalLength(vectorList[i], height)
-                drawLengthLine(vectorList[i], vectorList[0])
+                startLength(vectorList[i], height, Constant.Direction.Horizontal)
+                drawVerticalLengthLine(vectorList[i], vectorList[0])
                 setLengthLine(vectorList[i], vectorList[0])
             } else {
-                startHorizontalLength(vectorList[i], height)
-                drawLengthLine(vectorList[i], vectorList[i + 1])
+                startLength(vectorList[i], height, Constant.Direction.Horizontal)
+                drawVerticalLengthLine(vectorList[i], vectorList[i + 1])
                 setLengthLine(vectorList[i], vectorList[i + 1])
             }
         }
@@ -559,7 +569,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun startHorizontalLength(to: Vector3, height: Float) {
+    private fun startLength(to: Vector3, measure: Float, direction: Constant.Direction) {
         // Node that is automatically positioned in world space based on the ARCore Anchor.
         transformableNode = TransformableNode(transformationSystem)
         transformableNode.setParent(parentsTransformableNode)
@@ -568,7 +578,7 @@ class MainActivity : AppCompatActivity() {
 
         if (drawType == "TYPE_ROOM") {
 
-            percentageHeight = height / maxLength * 0.2f
+            percentageHeight = measure / maxLength * 0.2f
 
             // Prepare a color
             val colorCode = Color(android.graphics.Color.parseColor("#888888"))
@@ -585,69 +595,46 @@ class MainActivity : AppCompatActivity() {
 
         } else if (drawType == "TYPE_DOOR") {
 
-            percentageDoorHeight = height / maxLength * 0.2f
-
             // Prepare a color
             val colorCode = Color(android.graphics.Color.parseColor("#888888"))
 
-            //Rendering
-            RenderingUtil.extendCylinderLineY(
-                this,
-                colorCode,
-                0.0015f * cylinderDiameter,
-                percentageDoorHeight,
-                transformableNode,
-                to
-            )
+            if (direction == Constant.Direction.Horizontal) {
 
+                percentageDoorHeight = measure / maxLength * 0.2f
+
+                //Rendering
+                RenderingUtil.extendCylinderLineY(
+                    this,
+                    colorCode,
+                    0.0015f * cylinderDiameter,
+                    percentageDoorHeight,
+                    transformableNode,
+                    to
+                )
+
+            } else {
+
+                // Compute a line's length
+                percentageDoorWidth = measure / maxLength * 0.2f
+
+                // Prepare a color
+                val colorCode = Color(android.graphics.Color.parseColor("#888888"))
+
+                //Rendering
+                RenderingUtil.extendCylinderLineX(
+                    this,
+                    colorCode,
+                    0.0015f * cylinderDiameter,
+                    percentageDoorWidth,
+                    transformableNode,
+                    to
+                )
+
+            }
         }
     }
 
-    private fun startVerticalLength(to: Vector3, width: Float) {
-        // Node that is automatically positioned in world space based on the ARCore Anchor.
-        transformableNode = TransformableNode(transformationSystem)
-        transformableNode.setParent(parentsTransformableNode)
-
-        // todo
-        if (drawType == "TYPE_ROOM") {
-
-            // Compute a line's length
-            percentageDoorWidth = width / maxLength * 0.2f
-
-            // Prepare a color
-            val colorCode = Color(android.graphics.Color.parseColor("#888888"))
-
-            //Rendering
-            RenderingUtil.extendCylinderLineX(
-                this,
-                colorCode,
-                0.0015f * cylinderDiameter,
-                percentageDoorWidth,
-                transformableNode,
-                to
-            )
-
-        } else if (drawType == "TYPE_DOOR") {
-
-            // Compute a line's length
-            percentageDoorWidth = width / maxLength * 0.2f
-
-            // Prepare a color
-            val colorCode = Color(android.graphics.Color.parseColor("#888888"))
-
-            //Rendering
-            RenderingUtil.extendCylinderLineX(
-                this,
-                colorCode,
-                0.0015f * cylinderDiameter,
-                percentageDoorWidth,
-                transformableNode,
-                to
-            )
-        }
-    }
-
-    private fun drawLengthLine(from: Vector3, to: Vector3) {
+    private fun drawVerticalLengthLine(from: Vector3, to: Vector3) {
         // Node that is automatically positioned in world space based on the ARCore Anchor.
         transformableNode = TransformableNode(transformationSystem)
         transformableNode.setParent(parentsTransformableNode)
