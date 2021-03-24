@@ -103,6 +103,11 @@ class MainActivity : AppCompatActivity() {
         var doorHeight = 15f
         var rawDoorVectorList = listOf(rawFirstDoorVector, rawSecondDoorVector)
 
+        var rawFirstWindowVector = Vector3(24f, 5f, -32f)
+        var rawSecondWindowVector = Vector3(21f, 5f, -38f)
+        var windowHeight = 10f
+        var rawWindowVectorList = listOf(rawFirstWindowVector, rawSecondWindowVector)
+
         maxLength = LocationUtil.longLength(rawVectorList, height)
 
         DlogUtil.d(
@@ -128,7 +133,8 @@ class MainActivity : AppCompatActivity() {
         drawSizeModeling(ceilingVectorList)
 
         //만약 창문이나 문이 있을 경우, 먼저 모델링 좌표를 가지고 와서 동일하게 좌표를 조절하고, 랜더링 하면 될듯 ㅇㅁ... ?!
-        drawDoor(rawDoorVectorList, doorHeight)
+        drawDoorAndWindow(rawDoorVectorList, doorHeight)
+        drawDoorAndWindow(rawWindowVectorList, windowHeight)
 
         setTransformableNode()
 
@@ -406,7 +412,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun drawDoor(doorVectorList: List<Vector3>, doorHeight: Float) {
+    private fun drawDoorAndWindow(doorVectorList: List<Vector3>, doorHeight: Float) {
 
         drawType = "TYPE_DOOR"
 
@@ -414,21 +420,12 @@ class MainActivity : AppCompatActivity() {
         addLineBetweenPoints(
             Vector3(
                 doorVectorList[0].x / maxLength,
-                0f,
-                doorVectorList[0].z / maxLength
-            ),
-            Vector3(doorVectorList[1].x / maxLength, 0f, doorVectorList[1].z / maxLength),
-            Constant.serenityHexColorCode
-        )
-        addLineBetweenPoints(
-            Vector3(
-                doorVectorList[0].x / maxLength,
-                doorHeight / maxLength,
+                doorVectorList[0].y / maxLength,
                 doorVectorList[0].z / maxLength
             ),
             Vector3(
                 doorVectorList[1].x / maxLength,
-                doorHeight / maxLength,
+                doorVectorList[1].y / maxLength,
                 doorVectorList[1].z / maxLength
             ),
             Constant.serenityHexColorCode
@@ -436,12 +433,25 @@ class MainActivity : AppCompatActivity() {
         addLineBetweenPoints(
             Vector3(
                 doorVectorList[0].x / maxLength,
-                0f,
+                (doorVectorList[0].y + doorHeight) / maxLength,
+                doorVectorList[0].z / maxLength
+            ),
+            Vector3(
+                doorVectorList[1].x / maxLength,
+                (doorVectorList[1].y + doorHeight) / maxLength,
+                doorVectorList[1].z / maxLength
+            ),
+            Constant.serenityHexColorCode
+        )
+        addLineBetweenPoints(
+            Vector3(
+                doorVectorList[0].x / maxLength,
+                doorVectorList[0].y / maxLength,
                 doorVectorList[0].z / maxLength
             ),
             Vector3(
                 doorVectorList[0].x / maxLength,
-                doorHeight / maxLength,
+                (doorVectorList[0].y + doorHeight) / maxLength,
                 doorVectorList[0].z / maxLength
             ),
             Constant.serenityHexColorCode
@@ -450,12 +460,12 @@ class MainActivity : AppCompatActivity() {
         addLineBetweenPoints(
             Vector3(
                 doorVectorList[1].x / maxLength,
-                0f,
+                doorVectorList[1].y / maxLength,
                 doorVectorList[1].z / maxLength
             ),
             Vector3(
                 doorVectorList[1].x / maxLength,
-                doorHeight / maxLength,
+                (doorVectorList[1].y + doorHeight) / maxLength,
                 doorVectorList[1].z / maxLength
             ),
             Constant.serenityHexColorCode
@@ -465,7 +475,12 @@ class MainActivity : AppCompatActivity() {
         startLength(
             Vector3(
                 doorVectorList[0].x / maxLength,
-                doorHeight / maxLength,
+                (doorVectorList[0].y + doorHeight) / maxLength,
+                doorVectorList[0].z / maxLength
+            ),
+            Vector3(
+                doorVectorList[0].x / maxLength,
+                doorVectorList[0].y / maxLength,
                 doorVectorList[0].z / maxLength
             ), doorHeight, Constant.Direction.Horizontal
         )
@@ -473,7 +488,11 @@ class MainActivity : AppCompatActivity() {
         startLength(
             Vector3(
                 doorVectorList[1].x / maxLength,
-                doorHeight / maxLength,
+                (doorVectorList[1].y + doorHeight) / maxLength,
+                doorVectorList[1].z / maxLength
+            ), Vector3(
+                doorVectorList[1].x / maxLength,
+                doorVectorList[1].y / maxLength,
                 doorVectorList[1].z / maxLength
             ), doorHeight, Constant.Direction.Horizontal
         )
@@ -481,9 +500,16 @@ class MainActivity : AppCompatActivity() {
         startLength(
             Vector3(
                 doorVectorList[1].x / maxLength,
-                doorHeight / maxLength,
+                (doorVectorList[1].y + doorHeight) / maxLength,
                 doorVectorList[1].z / maxLength
             ),
+
+            Vector3(
+                doorVectorList[0].x / maxLength,
+                (doorVectorList[0].y + doorHeight) / maxLength,
+                doorVectorList[0].z / maxLength
+            ),
+
             MathUtil.calculationLength(
                 listOf(
                     (doorVectorList[1].x - doorVectorList[0].x),
@@ -495,8 +521,12 @@ class MainActivity : AppCompatActivity() {
         startLength(
             Vector3(
                 doorVectorList[1].x / maxLength,
-                0f,
+                doorVectorList[1].y / maxLength,
                 doorVectorList[1].z / maxLength
+            ), Vector3(
+                doorVectorList[0].x / maxLength,
+                doorVectorList[0].y / maxLength,
+                doorVectorList[0].z / maxLength
             ),
             MathUtil.calculationLength(
                 listOf(
@@ -509,11 +539,11 @@ class MainActivity : AppCompatActivity() {
         drawLengthLine(
             Vector3(
                 doorVectorList[0].x / maxLength,
-                doorHeight / maxLength,
+                (doorVectorList[1].y + doorHeight) / maxLength,
                 doorVectorList[0].z / maxLength
             ), Vector3(
                 doorVectorList[1].x / maxLength,
-                doorHeight / maxLength,
+                (doorVectorList[1].y + doorHeight) / maxLength,
                 doorVectorList[1].z / maxLength
             ), Constant.Direction.Horizontal
         )
@@ -521,12 +551,12 @@ class MainActivity : AppCompatActivity() {
         drawLengthLine(
             Vector3(
                 doorVectorList[1].x / maxLength,
-                doorHeight / maxLength,
+                (doorVectorList[1].y + doorHeight) / maxLength,
                 doorVectorList[1].z / maxLength
             ),
             Vector3(
                 doorVectorList[1].x / maxLength,
-                0f,
+                doorVectorList[1].y / maxLength,
                 doorVectorList[1].z / maxLength
             ), Constant.Direction.Vertical
         )
@@ -536,10 +566,20 @@ class MainActivity : AppCompatActivity() {
 
         for (i in vectorList.indices) {
             if (i == vectorList.size - 1) {
-                startLength(vectorList[i], height, Constant.Direction.Horizontal)
+                startLength(
+                    vectorList[i],
+                    Vector3(vectorList[i].x, 0f, vectorList[i].z),
+                    height,
+                    Constant.Direction.Horizontal
+                )
                 drawLengthLine(vectorList[i], vectorList[0], Constant.Direction.Horizontal)
             } else {
-                startLength(vectorList[i], height, Constant.Direction.Horizontal)
+                startLength(
+                    vectorList[i],
+                    Vector3(vectorList[i].x, 0f, vectorList[i].z),
+                    height,
+                    Constant.Direction.Horizontal
+                )
                 drawLengthLine(vectorList[i], vectorList[i + 1], Constant.Direction.Horizontal)
             }
         }
@@ -568,7 +608,12 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun startLength(to: Vector3, measure: Float, direction: Constant.Direction) {
+    private fun startLength(
+        to: Vector3,
+        from: Vector3,
+        measure: Float,
+        direction: Constant.Direction
+    ) {
         // Node that is automatically positioned in world space based on the ARCore Anchor.
         transformableNode = TransformableNode(transformationSystem)
         transformableNode.setParent(parentsTransformableNode)
@@ -603,7 +648,7 @@ class MainActivity : AppCompatActivity() {
                     0.0015f * cylinderDiameter,
                     percentageWidth,
                     transformableNode,
-                    to
+                    to, from
                 )
             }
 
@@ -630,7 +675,8 @@ class MainActivity : AppCompatActivity() {
             } else {
 
                 // Compute a line's length
-                percentageDoorWidth = measure / maxLength * 0.2f
+                percentageDoorWidth = measure / maxLength * .2f
+                DlogUtil.d(TAG, "percentageDoorWidth $percentageDoorWidth")
 
                 //Rendering
                 RenderingUtil.extendCylinderLineX(
@@ -639,7 +685,7 @@ class MainActivity : AppCompatActivity() {
                     0.0015f * cylinderDiameter,
                     percentageDoorWidth,
                     transformableNode,
-                    to
+                    to, from
                 )
 
             }

@@ -11,6 +11,8 @@ import com.google.ar.sceneform.ux.TransformableNode
 
 object RenderingUtil {
 
+    private const val TAG = "RenderingUtil"
+
     fun drawCylinderLine(
         context: Context,
         lineColor: Color,
@@ -88,7 +90,8 @@ object RenderingUtil {
         radius: Float,
         length: Float,
         parentNode: TransformableNode,
-        to: Vector3
+        to: Vector3,
+        from: Vector3
     ) {
         // 1. make a material by the color
         MaterialFactory.makeOpaqueWithColor(context, lineColor)
@@ -106,11 +109,11 @@ object RenderingUtil {
                 node.renderable = model
                 node.setParent(parentNode)
                 node.worldPosition =
-                    Vector3.add(to, Vector3(to.x + length, to.y, to.z)).scaled(.5f);
+                    Vector3.add(to, MathUtil.addVector(from, to,20)).scaled(.5f);
 
                 //4. set rotation
                 val difference =
-                    Vector3.subtract(to, Vector3(to.x + length, to.y, to.z))
+                    Vector3.subtract(to, from)
                 val directionFromTopToBottom = difference.normalized()
                 val rotationFromAToB =
                     Quaternion.lookRotation(
