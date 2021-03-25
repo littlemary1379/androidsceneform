@@ -1,30 +1,38 @@
-package com.mary.myapplication
+package com.mary.myapplication.util.fragment
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.graphics.Point
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MotionEvent
-import androidx.appcompat.app.AppCompatActivity
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.google.ar.core.ArCoreApk
 import com.google.ar.core.exceptions.*
 import com.google.ar.sceneform.SceneView
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
-import com.google.ar.sceneform.rendering.*
-import com.google.ar.sceneform.ux.*
+import com.google.ar.sceneform.ux.FootprintSelectionVisualizer
+import com.google.ar.sceneform.ux.TransformableNode
+import com.google.ar.sceneform.ux.TransformationSystem
+import com.mary.myapplication.R
 import com.mary.myapplication.util.*
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.round
+import kotlin.math.sin
 
+class Fragment_3D : Fragment() {
 
-class MainActivity : AppCompatActivity() {
-
-    private val TAG = "MainActivity"
+    companion object {
+        private const val TAG = "Fragment_3D"
+    }
 
     private lateinit var sceneView: SceneView
-
-    private var installRequest: Boolean = false
 
     private lateinit var transformationSystem: TransformationSystem
     private lateinit var transformableNode: TransformableNode
@@ -62,14 +70,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drawType: Constant.DrawType
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
         findView()
-
-        permissionCheck()
-        checkARcore()
-
 
         //정육면 입방체임
         //입방체 바닥
@@ -111,7 +115,7 @@ class MainActivity : AppCompatActivity() {
         maxLength = LocationUtil.longLength(rawVectorList, height)
 
         DlogUtil.d(
-            TAG,
+            Companion.TAG,
             "가장 큰 길이 $maxLength"
         )
 
@@ -140,29 +144,17 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        val view = inflater.inflate(R.layout.fragment_3d, null)
+        return view
+    }
+
     private fun findView() {
-        sceneView = findViewById(R.id.sceneView)
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        if (sceneView == null) {
-            return
-        }
-
-        try {
-            sceneView.resume()
-
-        } catch (e: CameraNotAvailableException) {
-            DlogUtil.d(TAG, e)
-            e.printStackTrace()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        sceneView.pause()
+        sceneView = view!!.findViewById(R.id.sceneView)
     }
 
     private fun initVectorList(rawVectorList: List<Vector3>) {
@@ -235,7 +227,7 @@ class MainActivity : AppCompatActivity() {
         centerPosition = Vector3(cameraX, cameraY, cameraZ)
 
         var deviceSize = Point()
-        display?.getRealSize(deviceSize)
+        context!!.display?.getRealSize(deviceSize)
         val deviceWidth = deviceSize.x
         val deviceHeight = deviceSize.y
 
@@ -296,7 +288,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initSceneView() {
 
-        sceneView.renderer?.setClearColor(Color(android.graphics.Color.WHITE))
+        sceneView.renderer?.setClearColor(com.google.ar.sceneform.rendering.Color(Color.WHITE))
         transformationSystem =
             TransformationSystem(resources.displayMetrics, FootprintSelectionVisualizer())
 
@@ -608,28 +600,32 @@ class MainActivity : AppCompatActivity() {
         val lineLength = Vector3.subtract(from, to).length()
 
         // Prepare a color
-        val colorCode = Color(android.graphics.Color.parseColor(colorCode))
+        val colorCode = com.google.ar.sceneform.rendering.Color(Color.parseColor(colorCode))
 
         if(drawType == Constant.DrawType.TYPE_ROOM) {
-            RenderingUtil.drawCylinderLine(
-                this,
-                colorCode,
-                0.0025f * cylinderDiameter,
-                lineLength,
-                transformableNode,
-                from,
-                to
-            )
+            context?.let {
+                RenderingUtil.drawCylinderLine(
+                    it,
+                    colorCode,
+                    0.0025f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
+            }
         } else if(drawType == Constant.DrawType.TYPE_DOOR) {
-            RenderingUtil.drawCylinderLine(
-                this,
-                colorCode,
-                0.0015f * cylinderDiameter,
-                lineLength,
-                transformableNode,
-                from,
-                to
-            )
+            context?.let {
+                RenderingUtil.drawCylinderLine(
+                    it,
+                    colorCode,
+                    0.0015f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
+            }
         }
 
     }
@@ -649,39 +645,43 @@ class MainActivity : AppCompatActivity() {
         if (drawType == Constant.DrawType.TYPE_ROOM) {
 
             // Prepare a color
-            val colorCode = Color(android.graphics.Color.parseColor("#888888"))
+            val colorCode = com.google.ar.sceneform.rendering.Color(Color.parseColor("#888888"))
 
             if (direction == Constant.Direction.Horizontal) {
 
                 percentageHeight = measure / maxLength * 0.2f
 
                 //Rendering
-                RenderingUtil.extendCylinderLineY(
-                    this,
-                    colorCode,
-                    0.001f * cylinderDiameter,
-                    percentageHeight,
-                    transformableNode,
-                    to
-                )
+                context?.let {
+                    RenderingUtil.extendCylinderLineY(
+                        it,
+                        colorCode,
+                        0.001f * cylinderDiameter,
+                        percentageHeight,
+                        transformableNode,
+                        to
+                    )
+                }
             } else if (direction == Constant.Direction.Vertical) {
                 percentageWidth = measure / maxLength * 0.2f
 
                 //Rendering
-                RenderingUtil.extendCylinderLineX(
-                    this,
-                    colorCode,
-                    0.001f * cylinderDiameter,
-                    percentageWidth,
-                    transformableNode,
-                    to, from
-                )
+                context?.let {
+                    RenderingUtil.extendCylinderLineX(
+                        it,
+                        colorCode,
+                        0.001f * cylinderDiameter,
+                        percentageWidth,
+                        transformableNode,
+                        to, from
+                    )
+                }
             }
 
         } else if (drawType == Constant.DrawType.TYPE_DOOR) {
 
             // Prepare a color
-            val colorCode = Color(android.graphics.Color.parseColor("#888888"))
+            val colorCode = com.google.ar.sceneform.rendering.Color(Color.parseColor("#888888"))
 
             if (direction == Constant.Direction.Horizontal) {
 
@@ -689,14 +689,16 @@ class MainActivity : AppCompatActivity() {
                 percentageDoorHeight = measure / maxLength * 0.2f
 
                 //Rendering
-                RenderingUtil.extendCylinderLineY(
-                    this,
-                    colorCode,
-                    0.0005f * cylinderDiameter,
-                    percentageDoorHeight,
-                    transformableNode,
-                    to
-                )
+                context?.let {
+                    RenderingUtil.extendCylinderLineY(
+                        it,
+                        colorCode,
+                        0.0005f * cylinderDiameter,
+                        percentageDoorHeight,
+                        transformableNode,
+                        to
+                    )
+                }
 
             } else {
 
@@ -705,14 +707,16 @@ class MainActivity : AppCompatActivity() {
                 DlogUtil.d(TAG, "percentageDoorWidth $percentageDoorWidth")
 
                 //Rendering
-                RenderingUtil.extendCylinderLineX(
-                    this,
-                    colorCode,
-                    0.0005f * cylinderDiameter,
-                    percentageDoorWidth,
-                    transformableNode,
-                    to, from
-                )
+                context?.let {
+                    RenderingUtil.extendCylinderLineX(
+                        it,
+                        colorCode,
+                        0.0005f * cylinderDiameter,
+                        percentageDoorWidth,
+                        transformableNode,
+                        to, from
+                    )
+                }
 
             }
         }
@@ -730,7 +734,7 @@ class MainActivity : AppCompatActivity() {
         val lineLength = Vector3.subtract(from, to).length()
 
         // Prepare a color
-        val colorCode = Color(android.graphics.Color.parseColor("#888888"))
+        val colorCode = com.google.ar.sceneform.rendering.Color(Color.parseColor("#888888"))
 
         //re-init axis
         if (drawType == Constant.DrawType.TYPE_ROOM) {
@@ -741,15 +745,17 @@ class MainActivity : AppCompatActivity() {
             }
 
             //Rendering
-            RenderingUtil.drawCylinderLine(
-                this,
-                colorCode,
-                0.001f * cylinderDiameter,
-                lineLength,
-                transformableNode,
-                axisFrom,
-                axisTo
-            )
+            context?.let {
+                RenderingUtil.drawCylinderLine(
+                    it,
+                    colorCode,
+                    0.001f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    axisFrom,
+                    axisTo
+                )
+            }
 
         } else if (drawType == Constant.DrawType.TYPE_DOOR) {
 
@@ -766,15 +772,17 @@ class MainActivity : AppCompatActivity() {
             }
 
             //Rendering
-            RenderingUtil.drawCylinderLine(
-                this,
-                colorCode,
-                0.0005f * cylinderDiameter,
-                lineLength,
-                transformableNode,
-                axisFrom,
-                axisTo
-            )
+            context?.let {
+                RenderingUtil.drawCylinderLine(
+                    it,
+                    colorCode,
+                    0.0005f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    axisFrom,
+                    axisTo
+                )
+            }
 
         }
         setLengthLine(from, to, direction)
@@ -797,92 +805,33 @@ class MainActivity : AppCompatActivity() {
 
         if (direction == Constant.Direction.Horizontal) {
             //Rendering
-            RenderingUtil.drawTextView(
-                this,
-                centerPosition,
-                percentageHeight,
-                lengthText,
-                transformableNode,
-                from,
-                to,
-                Constant.Direction.Horizontal
-            )
+            context?.let {
+                RenderingUtil.drawTextView(
+                    it,
+                    centerPosition,
+                    percentageHeight,
+                    lengthText,
+                    transformableNode,
+                    from,
+                    to,
+                    Constant.Direction.Horizontal
+                )
+            }
         } else if (direction == Constant.Direction.Vertical) {
             //Rendering
-            RenderingUtil.drawTextView(
-                this,
-                centerPosition,
-                percentageHeight,
-                lengthText,
-                transformableNode,
-                from,
-                to,
-                Constant.Direction.Vertical
-            )
-        }
-    }
-
-    //1. permission
-    private fun permissionCheck() {
-        PermissionCheckUtil.checkPermission(this, arrayOf(Manifest.permission.CAMERA))
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        var permissionSize: Int = permissions.size
-
-        for (i: Int in 0 until permissionSize) {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    permissions[i]
-                ) == PackageManager.PERMISSION_DENIED
-            ) {
-                DlogUtil.d(TAG, "권한 미승인")
-                finish()
-            } else {
-                DlogUtil.d(TAG, "${permissions[i]} 권한 승인")
+            context?.let {
+                RenderingUtil.drawTextView(
+                    it,
+                    centerPosition,
+                    percentageHeight,
+                    lengthText,
+                    transformableNode,
+                    from,
+                    to,
+                    Constant.Direction.Vertical
+                )
             }
         }
-
-    }
-
-    //2. Create Session
-    //세션을 만들기 전 AR core이 지원되는지 아닌지 확인하고 세션을 생성한다.
-    private fun checkARcore() {
-        try {
-            when (ArCoreApk.getInstance().requestInstall(this, installRequest)) {
-                ArCoreApk.InstallStatus.INSTALL_REQUESTED -> {
-                    DlogUtil.d(TAG, "AR core 설치 필요")
-                    installRequest = true
-                }
-                ArCoreApk.InstallStatus.INSTALLED -> {
-                    DlogUtil.d(TAG, "AR core 설치 미필요")
-                }
-            }
-        } catch (e: UnavailableArcoreNotInstalledException) {
-            DlogUtil.d(TAG, "ARCore 설치 필요")
-        } catch (e: UnavailableUserDeclinedInstallationException) {
-            DlogUtil.d(TAG, "ARCore 설치 필요")
-        } catch (e: UnavailableApkTooOldException) {
-            DlogUtil.d(TAG, "ARCore 업데이트 필요")
-        } catch (e: UnavailableSdkTooOldException) {
-            DlogUtil.d(TAG, "앱 업데이트 필요")
-        } catch (e: UnavailableDeviceNotCompatibleException) {
-            DlogUtil.d(TAG, "디바이스가 AR core을 지원하지 않음")
-        } catch (e: Exception) {
-            DlogUtil.d(TAG, "AR 세션 생성 실패")
-            e.printStackTrace()
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-
     }
 
 }
