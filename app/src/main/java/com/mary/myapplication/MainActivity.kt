@@ -12,17 +12,20 @@ import com.google.ar.core.exceptions.*
 import com.google.ar.sceneform.SceneView
 import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.PermissionCheckUtil
-import com.mary.myapplication.util.fragment.Fragment_3D
+import com.mary.myapplication.util.fragment.Fragment3D
+import com.mary.myapplication.util.fragment.FragmentFloor
 
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
 
     private lateinit var linearLayout3D: LinearLayout
+    private lateinit var linearLayoutFloor: LinearLayout
     private lateinit var frameLayoutContainer: FrameLayout
-    private lateinit var sceneView: SceneView
 
     private var installRequest: Boolean = false
+
+    private var fragment = "3D"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,18 +37,35 @@ class MainActivity : AppCompatActivity() {
         permissionCheck()
         checkARcore()
 
-        supportFragmentManager.beginTransaction().add(R.id.frameLayoutContainer, Fragment_3D()).commit()
+        supportFragmentManager.beginTransaction().add(R.id.frameLayoutContainer, Fragment3D().newInstance()).commit()
     }
 
     private fun findView() {
         linearLayout3D = findViewById(R.id.linearLayout3D)
+        linearLayoutFloor = findViewById(R.id.linearLayoutFloor)
         frameLayoutContainer = findViewById(R.id.frameLayoutContainer)
     }
 
     private fun setListener(){
         linearLayout3D.setOnClickListener {
-            supportFragmentManager.beginTransaction().add(R.id.frameLayoutContainer, Fragment_3D()).commit()
+            DlogUtil.d(TAG, "3D")
+            if(fragment == "3D") {
+                return@setOnClickListener
+            }
+            fragment = "3D"
+            supportFragmentManager.beginTransaction().replace(R.id.frameLayoutContainer, Fragment3D().newInstance()).commit()
         }
+
+        linearLayoutFloor.setOnClickListener {
+            DlogUtil.d(TAG, "floor")
+            if(fragment == "floor") {
+                return@setOnClickListener
+            }
+            fragment = "floor"
+            supportFragmentManager.beginTransaction().replace(R.id.frameLayoutContainer, FragmentFloor()).commit()
+        }
+
+
     }
 
     //1. permission

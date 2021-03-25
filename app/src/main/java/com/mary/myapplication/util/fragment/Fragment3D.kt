@@ -23,7 +23,11 @@ import kotlin.math.round
 import kotlin.math.sin
 
 
-class Fragment_3D : Fragment() {
+class Fragment3D : Fragment() {
+
+    fun newInstance() : Fragment3D {
+        return Fragment3D()
+    }
 
     companion object {
         private const val TAG = "Fragment_3D"
@@ -66,18 +70,19 @@ class Fragment_3D : Fragment() {
 
     private lateinit var drawType: Constant.DrawType
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-
-        super.onCreate(savedInstanceState)
-
-    }
+    private var layoutView : View? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        DlogUtil.d(TAG, "음.......")
         return inflater.inflate(R.layout.fragment_3d, null)
+    }
+
+    init {
+        DlogUtil.d(TAG, "이게 먼저인가욤")
     }
 
     override fun onPause() {
@@ -95,6 +100,8 @@ class Fragment_3D : Fragment() {
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
+
+        DlogUtil.d(TAG, "??????????")
 
         super.onActivityCreated(savedInstanceState)
 
@@ -399,7 +406,6 @@ class Fragment_3D : Fragment() {
 
 
     private fun drawModeling(vectorList: List<Vector3>) {
-        DlogUtil.d(TAG, " ???????????? ")
 
         drawType = Constant.DrawType.TYPE_ROOM
 

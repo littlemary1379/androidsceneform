@@ -13,4 +13,5 @@ object Constant {
     enum class DrawType {
         TYPE_ROOM, TYPE_DOOR
     }
+
 }
