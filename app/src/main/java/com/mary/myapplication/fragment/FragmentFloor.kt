@@ -1,4 +1,4 @@
-package com.mary.myapplication.util.fragment
+package com.mary.myapplication.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater

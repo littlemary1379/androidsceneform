@@ -1,4 +1,4 @@
-package com.mary.myapplication.util.customView
+package com.mary.myapplication.customView
 
 import android.content.Context
 import android.util.AttributeSet

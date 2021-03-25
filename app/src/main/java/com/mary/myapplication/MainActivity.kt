@@ -9,12 +9,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.ar.core.ArCoreApk
 import com.google.ar.core.exceptions.*
-import com.google.ar.sceneform.SceneView
+import com.mary.myapplication.util.DisplayUtil
 import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.PermissionCheckUtil
-import com.mary.myapplication.util.fragment.Fragment3D
-import com.mary.myapplication.util.fragment.FragmentFloor
-import com.mary.myapplication.util.viewholder.RenderingViewHolder
+import com.mary.myapplication.viewholder.RenderingViewHolder
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,6 +42,9 @@ class MainActivity : AppCompatActivity() {
 
         permissionCheck()
         checkARcore()
+
+        initSceneView()
+        initScreenWidth()
 
     }
 
@@ -82,6 +83,49 @@ class MainActivity : AppCompatActivity() {
 
         renderingViewHolderFloor = RenderingViewHolder(this)
         renderingViewHolderWall = RenderingViewHolder(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if(renderingViewHolder3D != null) {
+            renderingViewHolder3D.resume()
+        }
+
+        if(renderingViewHolderFloor != null) {
+            renderingViewHolderFloor.resume()
+        }
+
+        if(renderingViewHolderWall != null) {
+            renderingViewHolderWall.resume()
+        }
+
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        if(renderingViewHolder3D != null) {
+            renderingViewHolder3D.pause()
+        }
+
+        if(renderingViewHolderFloor != null) {
+            renderingViewHolderFloor.pause()
+        }
+
+        if(renderingViewHolderWall != null) {
+            renderingViewHolderWall.pause()
+        }
+
+    }
+
+    private fun initScreenWidth() {
+        //가로 전체에서 양쪽 10 마진 주기
+        val width : Int = DisplayUtil.getScreenWidthPx(this) - DisplayUtil.dipToPx(this, 10f)
+        val layoutParams = LinearLayout.LayoutParams(width, width)
+        frameLayout3D.layoutParams = layoutParams
+        frameLayoutFloor.layoutParams = layoutParams
+        frameLayoutWall.layoutParams = layoutParams
     }
 
     //1. permission

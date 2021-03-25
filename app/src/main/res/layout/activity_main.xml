@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.mary.myapplication.util.customView.CustomHorizontalScrollViewDisableTouch
+    <com.mary.myapplication.customView.CustomHorizontalScrollViewDisableTouch
         android:id="@+id/horizontalScrollView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -35,7 +35,7 @@
                 android:layout_height="100dp" />
 
         </LinearLayout>
-    </com.mary.myapplication.util.customView.CustomHorizontalScrollViewDisableTouch>
+    </com.mary.myapplication.customView.CustomHorizontalScrollViewDisableTouch>
 
 
     <LinearLayout

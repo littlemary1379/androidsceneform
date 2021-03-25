@@ -1,11 +1,14 @@
-package com.mary.myapplication.util.viewholder
+package com.mary.myapplication.fragment
 
-import android.content.Context
 import android.graphics.Color
 import android.graphics.Point
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import com.google.ar.core.exceptions.*
 import com.google.ar.sceneform.SceneView
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
@@ -14,19 +17,21 @@ import com.google.ar.sceneform.ux.TransformableNode
 import com.google.ar.sceneform.ux.TransformationSystem
 import com.mary.myapplication.R
 import com.mary.myapplication.util.*
-import com.mary.myapplication.util.fragment.Fragment3D
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.round
 import kotlin.math.sin
 
-class RenderingViewHolder(context: Context) {
 
-    companion object {
-        private const val TAG = "RenderingViewHolder"
+class Fragment3D : Fragment() {
+
+    fun newInstance() : Fragment3D {
+        return Fragment3D()
     }
 
-    var view: View = LayoutInflater.from(context).inflate(R.layout.fragment_3d, null)
+    companion object {
+        private const val TAG = "Fragment_3D"
+    }
 
     private lateinit var sceneView: SceneView
 
@@ -65,8 +70,43 @@ class RenderingViewHolder(context: Context) {
 
     private lateinit var drawType: Constant.DrawType
 
+    private var layoutView : View? = null
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        DlogUtil.d(TAG, "음.......")
+        return inflater.inflate(R.layout.fragment_3d, null)
+    }
+
     init {
+        DlogUtil.d(TAG, "이게 먼저인가욤")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sceneView.pause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        try {
+            sceneView.resume()
+        } catch (e: CameraNotAvailableException) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+
+        DlogUtil.d(TAG, "??????????")
+
+        super.onActivityCreated(savedInstanceState)
+
         findView()
+
         //정육면 입방체임
         //입방체 바닥
         var rawFirstVector = Vector3(0f, 0f, 0f)
@@ -107,7 +147,7 @@ class RenderingViewHolder(context: Context) {
         maxLength = LocationUtil.longLength(rawVectorList, height)
 
         DlogUtil.d(
-            TAG,
+            Companion.TAG,
             "가장 큰 길이 $maxLength"
         )
 
@@ -134,10 +174,11 @@ class RenderingViewHolder(context: Context) {
 
         setTransformableNode()
 
+
     }
 
     private fun findView() {
-        sceneView = view.findViewById(R.id.sceneView)
+        sceneView = view!!.findViewById(R.id.sceneView)
     }
 
     private fun initVectorList(rawVectorList: List<Vector3>) {
@@ -210,7 +251,7 @@ class RenderingViewHolder(context: Context) {
         centerPosition = Vector3(cameraX, cameraY, cameraZ)
 
         var deviceSize = Point()
-        view.context.display?.getRealSize(deviceSize)
+        context!!.display?.getRealSize(deviceSize)
         val deviceWidth = deviceSize.x
         val deviceHeight = deviceSize.y
 
@@ -273,7 +314,7 @@ class RenderingViewHolder(context: Context) {
 
         sceneView.renderer?.setClearColor(com.google.ar.sceneform.rendering.Color(Color.WHITE))
         transformationSystem =
-            TransformationSystem(view.resources.displayMetrics, FootprintSelectionVisualizer())
+            TransformationSystem(resources.displayMetrics, FootprintSelectionVisualizer())
 
         parentsTransformableNode = TransformableNode(transformationSystem)
         parentsTransformableNode.setParent(sceneView.scene)
@@ -586,34 +627,37 @@ class RenderingViewHolder(context: Context) {
         transformableNode = TransformableNode(transformationSystem)
         transformableNode.setParent(parentsTransformableNode)
 
+
         // Compute a line's length
         val lineLength = Vector3.subtract(from, to).length()
 
         // Prepare a color
         val colorCode = com.google.ar.sceneform.rendering.Color(Color.parseColor(colorCode))
 
-        if (drawType == Constant.DrawType.TYPE_ROOM) {
-            RenderingUtil.drawCylinderLine(
-                view.context,
-                colorCode,
-                0.0025f * cylinderDiameter,
-                lineLength,
-                transformableNode,
-                from,
-                to
-            )
-
-        } else if (drawType == Constant.DrawType.TYPE_DOOR) {
-
-            RenderingUtil.drawCylinderLine(
-                view.context,
-                colorCode,
-                0.0015f * cylinderDiameter,
-                lineLength,
-                transformableNode,
-                from,
-                to
-            )
+        if(drawType == Constant.DrawType.TYPE_ROOM) {
+            context?.let {
+                RenderingUtil.drawCylinderLine(
+                    it,
+                    colorCode,
+                    0.0025f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
+            }
+        } else if(drawType == Constant.DrawType.TYPE_DOOR) {
+            context?.let {
+                RenderingUtil.drawCylinderLine(
+                    it,
+                    colorCode,
+                    0.0015f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
+            }
         }
 
     }
@@ -640,28 +684,30 @@ class RenderingViewHolder(context: Context) {
                 percentageHeight = measure / maxLength * 0.2f
 
                 //Rendering
-                RenderingUtil.extendCylinderLineY(
-                    view.context,
-                    colorCode,
-                    0.001f * cylinderDiameter,
-                    percentageHeight,
-                    transformableNode,
-                    to
-                )
-
+                context?.let {
+                    RenderingUtil.extendCylinderLineY(
+                        it,
+                        colorCode,
+                        0.001f * cylinderDiameter,
+                        percentageHeight,
+                        transformableNode,
+                        to
+                    )
+                }
             } else if (direction == Constant.Direction.Vertical) {
                 percentageWidth = measure / maxLength * 0.2f
 
                 //Rendering
-                RenderingUtil.extendCylinderLineX(
-                    view.context,
-                    colorCode,
-                    0.001f * cylinderDiameter,
-                    percentageWidth,
-                    transformableNode,
-                    to, from
-                )
-
+                context?.let {
+                    RenderingUtil.extendCylinderLineX(
+                        it,
+                        colorCode,
+                        0.001f * cylinderDiameter,
+                        percentageWidth,
+                        transformableNode,
+                        to, from
+                    )
+                }
             }
 
         } else if (drawType == Constant.DrawType.TYPE_DOOR) {
@@ -675,15 +721,16 @@ class RenderingViewHolder(context: Context) {
                 percentageDoorHeight = measure / maxLength * 0.2f
 
                 //Rendering
-
-                RenderingUtil.extendCylinderLineY(
-                    view.context,
-                    colorCode,
-                    0.0005f * cylinderDiameter,
-                    percentageDoorHeight,
-                    transformableNode,
-                    to
-                )
+                context?.let {
+                    RenderingUtil.extendCylinderLineY(
+                        it,
+                        colorCode,
+                        0.0005f * cylinderDiameter,
+                        percentageDoorHeight,
+                        transformableNode,
+                        to
+                    )
+                }
 
             } else {
 
@@ -692,15 +739,16 @@ class RenderingViewHolder(context: Context) {
                 DlogUtil.d(TAG, "percentageDoorWidth $percentageDoorWidth")
 
                 //Rendering
-
-                RenderingUtil.extendCylinderLineX(
-                    view.context,
-                    colorCode,
-                    0.0005f * cylinderDiameter,
-                    percentageDoorWidth,
-                    transformableNode,
-                    to, from
-                )
+                context?.let {
+                    RenderingUtil.extendCylinderLineX(
+                        it,
+                        colorCode,
+                        0.0005f * cylinderDiameter,
+                        percentageDoorWidth,
+                        transformableNode,
+                        to, from
+                    )
+                }
 
             }
         }
@@ -729,39 +777,44 @@ class RenderingViewHolder(context: Context) {
             }
 
             //Rendering
-
-            RenderingUtil.drawCylinderLine(
-                view.context,
-                colorCode,
-                0.001f * cylinderDiameter,
-                lineLength,
-                transformableNode,
-                axisFrom,
-                axisTo
-            )
-
+            context?.let {
+                RenderingUtil.drawCylinderLine(
+                    it,
+                    colorCode,
+                    0.001f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    axisFrom,
+                    axisTo
+                )
+            }
 
         } else if (drawType == Constant.DrawType.TYPE_DOOR) {
 
             if (direction == Constant.Direction.Horizontal) {
                 axisFrom = Vector3(from.x, from.y + percentageDoorHeight * 0.5f, from.z)
                 axisTo = Vector3(to.x, to.y + percentageDoorHeight * 0.5f, to.z)
+
             } else if (direction == Constant.Direction.Vertical) {
                 DlogUtil.d(TAG, "어엥?")
                 axisFrom = Vector3(from.x, from.y, from.z)
                 axisTo = Vector3(to.x, to.y, to.z)
+
+
             }
 
             //Rendering
-            RenderingUtil.drawCylinderLine(
-                view.context,
-                colorCode,
-                0.0005f * cylinderDiameter,
-                lineLength,
-                transformableNode,
-                axisFrom,
-                axisTo
-            )
+            context?.let {
+                RenderingUtil.drawCylinderLine(
+                    it,
+                    colorCode,
+                    0.0005f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    axisFrom,
+                    axisTo
+                )
+            }
 
         }
         setLengthLine(from, to, direction)
@@ -784,32 +837,33 @@ class RenderingViewHolder(context: Context) {
 
         if (direction == Constant.Direction.Horizontal) {
             //Rendering
-            RenderingUtil.drawTextView(
-                view.context,
-                centerPosition,
-                percentageHeight,
-                lengthText,
-                transformableNode,
-                from,
-                to,
-                Constant.Direction.Horizontal
-            )
-
+            context?.let {
+                RenderingUtil.drawTextView(
+                    it,
+                    centerPosition,
+                    percentageHeight,
+                    lengthText,
+                    transformableNode,
+                    from,
+                    to,
+                    Constant.Direction.Horizontal
+                )
+            }
         } else if (direction == Constant.Direction.Vertical) {
             //Rendering
-            RenderingUtil.drawTextView(
-                view.context,
-                centerPosition,
-                percentageHeight,
-                lengthText,
-                transformableNode,
-                from,
-                to,
-                Constant.Direction.Vertical
-            )
-
+            context?.let {
+                RenderingUtil.drawTextView(
+                    it,
+                    centerPosition,
+                    percentageHeight,
+                    lengthText,
+                    transformableNode,
+                    from,
+                    to,
+                    Constant.Direction.Vertical
+                )
+            }
         }
     }
-
 
 }
