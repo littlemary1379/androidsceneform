@@ -1,7 +1,5 @@
 package com.mary.myapplication.util.fragment
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Point
 import android.os.Bundle
@@ -9,9 +7,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.google.ar.core.ArCoreApk
 import com.google.ar.core.exceptions.*
 import com.google.ar.sceneform.SceneView
 import com.google.ar.sceneform.math.Quaternion
@@ -25,6 +21,7 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.round
 import kotlin.math.sin
+
 
 class Fragment_3D : Fragment() {
 
@@ -72,6 +69,34 @@ class Fragment_3D : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
+
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_3d, null)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sceneView.pause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        try {
+            sceneView.resume()
+        } catch (e: CameraNotAvailableException) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+
+        super.onActivityCreated(savedInstanceState)
 
         findView()
 
@@ -142,15 +167,7 @@ class Fragment_3D : Fragment() {
 
         setTransformableNode()
 
-    }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_3d, null)
-        return view
     }
 
     private fun findView() {
@@ -382,14 +399,23 @@ class Fragment_3D : Fragment() {
 
 
     private fun drawModeling(vectorList: List<Vector3>) {
+        DlogUtil.d(TAG, " ???????????? ")
 
         drawType = Constant.DrawType.TYPE_ROOM
 
         for (i in vectorList.indices) {
             if (i == vectorList.size - 1) {
-                addLineBetweenPoints(vectorList[i], vectorList[0], Constant.gowoonwooriHexColorCode1)
+                addLineBetweenPoints(
+                    vectorList[i],
+                    vectorList[0],
+                    Constant.gowoonwooriHexColorCode1
+                )
             } else {
-                addLineBetweenPoints(vectorList[i], vectorList[i + 1], Constant.gowoonwooriHexColorCode1)
+                addLineBetweenPoints(
+                    vectorList[i],
+                    vectorList[i + 1],
+                    Constant.gowoonwooriHexColorCode1
+                )
             }
         }
     }
