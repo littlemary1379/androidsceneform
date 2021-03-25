@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.ar.core.ArCoreApk
 import com.google.ar.core.exceptions.*
+import com.mary.myapplication.customView.CustomHorizontalScrollViewDisableTouch
 import com.mary.myapplication.util.DisplayUtil
 import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.PermissionCheckUtil
@@ -25,13 +26,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var frameLayoutFloor: FrameLayout
     private lateinit var frameLayoutWall: FrameLayout
 
+    private lateinit var horizontalScrollView: CustomHorizontalScrollViewDisableTouch
+
     private var installRequest: Boolean = false
 
     private lateinit var renderingViewHolder3D : RenderingViewHolder
     private lateinit var renderingViewHolderFloor : RenderingViewHolder
     private lateinit var renderingViewHolderWall : RenderingViewHolder
-
-    private var fragment = "3D"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,34 +56,29 @@ class MainActivity : AppCompatActivity() {
         frameLayout3D = findViewById(R.id.frameLayout3D)
         frameLayoutFloor = findViewById(R.id.frameLayoutFloor)
         frameLayoutWall = findViewById(R.id.frameLayoutWall)
+
+        horizontalScrollView = findViewById(R.id.horizontalScrollView)
     }
 
     private fun setListener(){
         linearLayout3D.setOnClickListener {
-            DlogUtil.d(TAG, "3D")
-            if(fragment == "3D") {
-                return@setOnClickListener
-            }
-            fragment = "3D"
+            horizontalScrollView.smoothScrollTo(frameLayout3D.x.toInt(), 0)
         }
 
         linearLayoutFloor.setOnClickListener {
-            DlogUtil.d(TAG, "floor")
-            if(fragment == "floor") {
-                return@setOnClickListener
-            }
-            fragment = "floor"
-
+            horizontalScrollView.smoothScrollTo(frameLayoutFloor.x.toInt(), 0)
         }
 
     }
 
     private fun initSceneView(){
-        renderingViewHolder3D = RenderingViewHolder(this)
+        renderingViewHolder3D = RenderingViewHolder(this, RenderingViewHolder.TYPE_3D)
         frameLayout3D.addView(renderingViewHolder3D.view)
 
-        renderingViewHolderFloor = RenderingViewHolder(this)
-        renderingViewHolderWall = RenderingViewHolder(this)
+        renderingViewHolderFloor = RenderingViewHolder(this, RenderingViewHolder.TYPE_FLOOR)
+        frameLayoutFloor.addView(renderingViewHolderFloor.view)
+
+        renderingViewHolderWall = RenderingViewHolder(this, RenderingViewHolder.TYPE_WALL)
     }
 
     override fun onResume() {

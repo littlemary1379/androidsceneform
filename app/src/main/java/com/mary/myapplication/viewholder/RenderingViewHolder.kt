@@ -19,13 +19,16 @@ import kotlin.math.cos
 import kotlin.math.round
 import kotlin.math.sin
 
-class RenderingViewHolder(context: Context) {
+class RenderingViewHolder(context: Context, type : Int) {
 
     companion object {
         private const val TAG = "RenderingViewHolder"
+        val TYPE_3D = 0
+        val TYPE_FLOOR = 1
+        val TYPE_WALL = 2
     }
 
-    var view: View = LayoutInflater.from(context).inflate(R.layout.fragment_3d, null)
+    var view: View = LayoutInflater.from(context).inflate(R.layout.viewholder_rendering, null)
 
     private lateinit var sceneView: SceneView
 
@@ -66,8 +69,9 @@ class RenderingViewHolder(context: Context) {
 
     init {
         findView()
-        //정육면 입방체임
+
         //입방체 바닥
+        //이후 jsonObject로 받아올거임.....
         var rawFirstVector = Vector3(0f, 0f, 0f)
         var rawSecondVector = Vector3(30f, 0f, 0f)
         var rawThirdVector = Vector3(40f, 0f, -20f)
@@ -117,19 +121,28 @@ class RenderingViewHolder(context: Context) {
 
         initSceneView()
 
-        //모델 랜더링
-        drawModeling(floorVectorList)
-        drawPillar(floorVectorList)
-        drawModeling(ceilingVectorList)
+        if(type == TYPE_3D) {
+            //모델 랜더링
+            drawModeling(floorVectorList)
+            drawPillar(floorVectorList)
+            drawModeling(ceilingVectorList)
 
-        //위로 올라오는 선 긋기(y축만 차이나는 선끼리 찾아 벡터로 연결), y가 높은게 to로 들어가야 선이 연결됨.
-        //전체 model height에서 15% 정도 선이 올라오도록 하는게 좋지 않을까?
-        //여기는 계산을 해둔 상태인데, roomBean에 높이가 있으니까 lineLength는 빼도 될거 같아 :D
-        drawSizeModeling(ceilingVectorList)
+            //위로 올라오는 선 긋기(y축만 차이나는 선끼리 찾아 벡터로 연결), y가 높은게 to로 들어가야 선이 연결됨.
+            //전체 model height에서 15% 정도 선이 올라오도록 하는게 좋지 않을까?
+            //여기는 계산을 해둔 상태인데, roomBean에 높이가 있으니까 lineLength는 빼도 될거 같아 :D
+            drawSizeModeling(ceilingVectorList)
 
-        //만약 창문이나 문이 있을 경우, 먼저 모델링 좌표를 가지고 와서 동일하게 좌표를 조절하고, 랜더링 하면 될듯 ㅇㅁ... ?!
-        drawDoorAndWindow(rawDoorVectorList, doorHeight)
-        drawDoorAndWindow(rawWindowVectorList, windowHeight)
+            //만약 창문이나 문이 있을 경우, 먼저 모델링 좌표를 가지고 와서 동일하게 좌표를 조절하고, 랜더링 하면 될듯 ㅇㅁ... ?!
+            drawDoorAndWindow(rawDoorVectorList, doorHeight)
+            drawDoorAndWindow(rawWindowVectorList, windowHeight)
+        } else if(type == TYPE_FLOOR) {
+            //바닥만 그리고, 그려진걸 쿼테이션 시켜서 뒤집을 것
+            drawModeling(floorVectorList)
+        } else {
+            drawModeling(floorVectorList)
+        }
+
+
 
         setTransformableNode()
 
@@ -365,8 +378,8 @@ class RenderingViewHolder(context: Context) {
 
         transformableNode.worldPosition = centerPosition
 
-        parentsTransformableNode.scaleController.minScale = 0.5f
-        parentsTransformableNode.scaleController.maxScale = 2f
+        parentsTransformableNode.scaleController.minScale = 1f
+        parentsTransformableNode.scaleController.maxScale = 3f
 
     }
 
