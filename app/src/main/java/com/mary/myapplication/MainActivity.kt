@@ -14,6 +14,7 @@ import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.PermissionCheckUtil
 import com.mary.myapplication.util.fragment.Fragment3D
 import com.mary.myapplication.util.fragment.FragmentFloor
+import com.mary.myapplication.util.viewholder.RenderingViewHolder
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,9 +22,16 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var linearLayout3D: LinearLayout
     private lateinit var linearLayoutFloor: LinearLayout
-    private lateinit var frameLayoutContainer: FrameLayout
+
+    private lateinit var frameLayout3D: FrameLayout
+    private lateinit var frameLayoutFloor: FrameLayout
+    private lateinit var frameLayoutWall: FrameLayout
 
     private var installRequest: Boolean = false
+
+    private lateinit var renderingViewHolder3D : RenderingViewHolder
+    private lateinit var renderingViewHolderFloor : RenderingViewHolder
+    private lateinit var renderingViewHolderWall : RenderingViewHolder
 
     private var fragment = "3D"
 
@@ -37,13 +45,15 @@ class MainActivity : AppCompatActivity() {
         permissionCheck()
         checkARcore()
 
-        supportFragmentManager.beginTransaction().add(R.id.frameLayoutContainer, Fragment3D().newInstance()).commit()
     }
 
     private fun findView() {
         linearLayout3D = findViewById(R.id.linearLayout3D)
         linearLayoutFloor = findViewById(R.id.linearLayoutFloor)
-        frameLayoutContainer = findViewById(R.id.frameLayoutContainer)
+
+        frameLayout3D = findViewById(R.id.frameLayout3D)
+        frameLayoutFloor = findViewById(R.id.frameLayoutFloor)
+        frameLayoutWall = findViewById(R.id.frameLayoutWall)
     }
 
     private fun setListener(){
@@ -53,7 +63,6 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             fragment = "3D"
-            supportFragmentManager.beginTransaction().replace(R.id.frameLayoutContainer, Fragment3D().newInstance()).commit()
         }
 
         linearLayoutFloor.setOnClickListener {
@@ -62,10 +71,17 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             fragment = "floor"
-            supportFragmentManager.beginTransaction().replace(R.id.frameLayoutContainer, FragmentFloor()).commit()
+
         }
 
+    }
 
+    private fun initSceneView(){
+        renderingViewHolder3D = RenderingViewHolder(this)
+        frameLayout3D.addView(renderingViewHolder3D.view)
+
+        renderingViewHolderFloor = RenderingViewHolder(this)
+        renderingViewHolderWall = RenderingViewHolder(this)
     }
 
     //1. permission
@@ -125,5 +141,7 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
         }
     }
+
+
 
 }
