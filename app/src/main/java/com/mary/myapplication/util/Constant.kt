@@ -10,4 +10,7 @@ object Constant {
         Horizontal, Vertical
     }
 
+    enum class DrawType {
+        TYPE_ROOM, TYPE_DOOR
+    }
 }

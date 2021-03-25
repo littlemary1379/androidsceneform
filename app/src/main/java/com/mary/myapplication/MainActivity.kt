@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
     private var percentageDoorHeight: Float = 0f
     private var percentageDoorWidth: Float = 0f
 
-    private var drawType: String = ""
+    private lateinit var drawType: Constant.DrawType
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -391,7 +391,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun drawModeling(vectorList: List<Vector3>) {
 
-        drawType = "TYPE_ROOM"
+        drawType = Constant.DrawType.TYPE_ROOM
 
         for (i in vectorList.indices) {
             if (i == vectorList.size - 1) {
@@ -414,7 +414,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun drawDoorAndWindow(doorVectorList: List<Vector3>, doorHeight: Float) {
 
-        drawType = "TYPE_DOOR"
+        drawType = Constant.DrawType.TYPE_DOOR
 
         //draw Door
         addLineBetweenPoints(
@@ -610,15 +610,28 @@ class MainActivity : AppCompatActivity() {
         // Prepare a color
         val colorCode = Color(android.graphics.Color.parseColor(colorCode))
 
-        RenderingUtil.drawCylinderLine(
-            this,
-            colorCode,
-            0.0025f * cylinderDiameter,
-            lineLength,
-            transformableNode,
-            from,
-            to
-        )
+        if(drawType == Constant.DrawType.TYPE_ROOM) {
+            RenderingUtil.drawCylinderLine(
+                this,
+                colorCode,
+                0.0025f * cylinderDiameter,
+                lineLength,
+                transformableNode,
+                from,
+                to
+            )
+        } else if(drawType == Constant.DrawType.TYPE_DOOR) {
+            RenderingUtil.drawCylinderLine(
+                this,
+                colorCode,
+                0.0015f * cylinderDiameter,
+                lineLength,
+                transformableNode,
+                from,
+                to
+            )
+        }
+
     }
 
     private fun startLength(
@@ -633,7 +646,7 @@ class MainActivity : AppCompatActivity() {
 
         // Compute a line's length
 
-        if (drawType == "TYPE_ROOM") {
+        if (drawType == Constant.DrawType.TYPE_ROOM) {
 
             // Prepare a color
             val colorCode = Color(android.graphics.Color.parseColor("#888888"))
@@ -646,7 +659,7 @@ class MainActivity : AppCompatActivity() {
                 RenderingUtil.extendCylinderLineY(
                     this,
                     colorCode,
-                    0.0015f * cylinderDiameter,
+                    0.001f * cylinderDiameter,
                     percentageHeight,
                     transformableNode,
                     to
@@ -658,14 +671,14 @@ class MainActivity : AppCompatActivity() {
                 RenderingUtil.extendCylinderLineX(
                     this,
                     colorCode,
-                    0.0015f * cylinderDiameter,
+                    0.001f * cylinderDiameter,
                     percentageWidth,
                     transformableNode,
                     to, from
                 )
             }
 
-        } else if (drawType == "TYPE_DOOR") {
+        } else if (drawType == Constant.DrawType.TYPE_DOOR) {
 
             // Prepare a color
             val colorCode = Color(android.graphics.Color.parseColor("#888888"))
@@ -679,7 +692,7 @@ class MainActivity : AppCompatActivity() {
                 RenderingUtil.extendCylinderLineY(
                     this,
                     colorCode,
-                    0.0015f * cylinderDiameter,
+                    0.0005f * cylinderDiameter,
                     percentageDoorHeight,
                     transformableNode,
                     to
@@ -695,7 +708,7 @@ class MainActivity : AppCompatActivity() {
                 RenderingUtil.extendCylinderLineX(
                     this,
                     colorCode,
-                    0.0015f * cylinderDiameter,
+                    0.0005f * cylinderDiameter,
                     percentageDoorWidth,
                     transformableNode,
                     to, from
@@ -720,7 +733,7 @@ class MainActivity : AppCompatActivity() {
         val colorCode = Color(android.graphics.Color.parseColor("#888888"))
 
         //re-init axis
-        if (drawType == "TYPE_ROOM") {
+        if (drawType == Constant.DrawType.TYPE_ROOM) {
 
             if (direction == Constant.Direction.Horizontal) {
                 axisFrom = Vector3(from.x, from.y + percentageHeight * 0.5f, from.z)
@@ -731,14 +744,14 @@ class MainActivity : AppCompatActivity() {
             RenderingUtil.drawCylinderLine(
                 this,
                 colorCode,
-                0.0012f * cylinderDiameter,
+                0.001f * cylinderDiameter,
                 lineLength,
                 transformableNode,
                 axisFrom,
                 axisTo
             )
 
-        } else if (drawType == "TYPE_DOOR") {
+        } else if (drawType == Constant.DrawType.TYPE_DOOR) {
 
             if (direction == Constant.Direction.Horizontal) {
                 axisFrom = Vector3(from.x, from.y + percentageDoorHeight * 0.5f, from.z)
@@ -756,7 +769,7 @@ class MainActivity : AppCompatActivity() {
             RenderingUtil.drawCylinderLine(
                 this,
                 colorCode,
-                0.0010f * cylinderDiameter,
+                0.0005f * cylinderDiameter,
                 lineLength,
                 transformableNode,
                 axisFrom,
