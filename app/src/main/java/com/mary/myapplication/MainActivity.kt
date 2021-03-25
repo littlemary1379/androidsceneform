@@ -2,9 +2,7 @@ package com.mary.myapplication
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.Point
 import android.os.Bundle
-import android.view.MotionEvent
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
@@ -12,14 +10,9 @@ import androidx.core.content.ContextCompat
 import com.google.ar.core.ArCoreApk
 import com.google.ar.core.exceptions.*
 import com.google.ar.sceneform.SceneView
-import com.google.ar.sceneform.math.Quaternion
-import com.google.ar.sceneform.math.Vector3
-import com.google.ar.sceneform.rendering.*
-import com.google.ar.sceneform.ux.*
-import com.mary.myapplication.util.*
+import com.mary.myapplication.util.DlogUtil
+import com.mary.myapplication.util.PermissionCheckUtil
 import com.mary.myapplication.util.fragment.Fragment_3D
-import kotlin.math.*
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,41 +23,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sceneView: SceneView
 
     private var installRequest: Boolean = false
-
-    private lateinit var transformationSystem: TransformationSystem
-    private lateinit var transformableNode: TransformableNode
-    private lateinit var parentsTransformableNode: TransformableNode
-    private lateinit var transformableViewNode: TransformableNode
-
-    private var height = 0f
-    private var maxLength = 0f
-    private lateinit var floorVectorList: MutableList<Vector3>
-    private lateinit var ceilingVectorList: MutableList<Vector3>
-    var vectorList: MutableList<Vector3> = mutableListOf()
-
-    private lateinit var centerPosition: Vector3
-    private lateinit var cameraPosition: Vector3
-    private var cameraClip: Float = 0f
-    private var cylinderDiameter = 0f
-    private var textSize = 0f
-
-    private var lastDistance: Float = 0f
-
-    private var downX: Float = 0f
-    private var downY: Float = 0f
-
-    private var xAngle: Float = 0f
-    private var yAngle: Float = 0f
-    private var lastXAngle: Float = 0f
-    private var lastYAngle: Float = 0f
-
-    private var isScale: Boolean = false
-    private var percentageHeight: Float = 0f
-    private var percentageWidth: Float = 0f
-    private var percentageDoorHeight: Float = 0f
-    private var percentageDoorWidth: Float = 0f
-
-    private lateinit var drawType: Constant.DrawType
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,13 +35,11 @@ class MainActivity : AppCompatActivity() {
         checkARcore()
 
         supportFragmentManager.beginTransaction().add(R.id.frameLayoutContainer, Fragment_3D()).commit()
-
     }
 
     private fun findView() {
         linearLayout3D = findViewById(R.id.linearLayout3D)
         frameLayoutContainer = findViewById(R.id.frameLayoutContainer)
-        sceneView = findViewById(R.id.sceneView)
     }
 
     private fun setListener(){
@@ -91,29 +47,6 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction().add(R.id.frameLayoutContainer, Fragment_3D()).commit()
         }
     }
-
-    override fun onResume() {
-        super.onResume()
-
-        if (sceneView == null) {
-            return
-        }
-
-        try {
-            sceneView.resume()
-
-        } catch (e: CameraNotAvailableException) {
-            DlogUtil.d(TAG, e)
-            e.printStackTrace()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        sceneView.pause()
-    }
-
-
 
     //1. permission
     private fun permissionCheck() {
@@ -171,11 +104,6 @@ class MainActivity : AppCompatActivity() {
             DlogUtil.d(TAG, "AR 세션 생성 실패")
             e.printStackTrace()
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-
     }
 
 }
