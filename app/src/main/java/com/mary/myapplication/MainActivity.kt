@@ -395,9 +395,9 @@ class MainActivity : AppCompatActivity() {
 
         for (i in vectorList.indices) {
             if (i == vectorList.size - 1) {
-                addLineBetweenPoints(vectorList[i], vectorList[0], Constant.pinkHexColorCode)
+                addLineBetweenPoints(vectorList[i], vectorList[0], Constant.gowoonwooriHexColorCode1)
             } else {
-                addLineBetweenPoints(vectorList[i], vectorList[i + 1], Constant.pinkHexColorCode)
+                addLineBetweenPoints(vectorList[i], vectorList[i + 1], Constant.gowoonwooriHexColorCode1)
             }
         }
     }
@@ -407,7 +407,7 @@ class MainActivity : AppCompatActivity() {
             addLineBetweenPoints(
                 vectorList[i],
                 Vector3(vectorList[i].x, height / maxLength, vectorList[i].z),
-                Constant.pinkHexColorCode
+                Constant.gowoonwooriHexColorCode1
             )
         }
     }
@@ -428,7 +428,7 @@ class MainActivity : AppCompatActivity() {
                 doorVectorList[1].y / maxLength,
                 doorVectorList[1].z / maxLength
             ),
-            Constant.serenityHexColorCode
+            Constant.gowoonwooriHexColorCode2
         )
         addLineBetweenPoints(
             Vector3(
@@ -441,7 +441,7 @@ class MainActivity : AppCompatActivity() {
                 (doorVectorList[1].y + doorHeight) / maxLength,
                 doorVectorList[1].z / maxLength
             ),
-            Constant.serenityHexColorCode
+            Constant.gowoonwooriHexColorCode2
         )
         addLineBetweenPoints(
             Vector3(
@@ -454,7 +454,7 @@ class MainActivity : AppCompatActivity() {
                 (doorVectorList[0].y + doorHeight) / maxLength,
                 doorVectorList[0].z / maxLength
             ),
-            Constant.serenityHexColorCode
+            Constant.gowoonwooriHexColorCode2
         )
 
         addLineBetweenPoints(
@@ -468,7 +468,7 @@ class MainActivity : AppCompatActivity() {
                 (doorVectorList[1].y + doorHeight) / maxLength,
                 doorVectorList[1].z / maxLength
             ),
-            Constant.serenityHexColorCode
+            Constant.gowoonwooriHexColorCode2
         )
 
         //draw Size
@@ -539,7 +539,7 @@ class MainActivity : AppCompatActivity() {
         drawLengthLine(
             Vector3(
                 doorVectorList[0].x / maxLength,
-                (doorVectorList[1].y + doorHeight) / maxLength,
+                (doorVectorList[0].y + doorHeight) / maxLength,
                 doorVectorList[0].z / maxLength
             ), Vector3(
                 doorVectorList[1].x / maxLength,
@@ -549,16 +549,29 @@ class MainActivity : AppCompatActivity() {
         )
 
         drawLengthLine(
-            Vector3(
-                doorVectorList[1].x / maxLength,
-                (doorVectorList[1].y + doorHeight) / maxLength,
-                doorVectorList[1].z / maxLength
+            MathUtil.addVector(
+                Vector3(
+                    doorVectorList[0].x / maxLength,
+                    (doorVectorList[0].y + doorHeight) / maxLength,
+                    doorVectorList[0].z / maxLength
+                ), Vector3(
+                    doorVectorList[1].x / maxLength,
+                    (doorVectorList[1].y + doorHeight) / maxLength,
+                    doorVectorList[1].z / maxLength
+                ), 10
             ),
-            Vector3(
-                doorVectorList[1].x / maxLength,
-                doorVectorList[1].y / maxLength,
-                doorVectorList[1].z / maxLength
-            ), Constant.Direction.Vertical
+            MathUtil.addVector(
+                Vector3(
+                    doorVectorList[0].x / maxLength,
+                    doorVectorList[0].y / maxLength,
+                    doorVectorList[0].z / maxLength
+                ), Vector3(
+                    doorVectorList[1].x / maxLength,
+                    doorVectorList[1].y / maxLength,
+                    doorVectorList[1].z / maxLength
+                ), 10
+            ),
+            Constant.Direction.Vertical
         )
     }
 
@@ -733,8 +746,10 @@ class MainActivity : AppCompatActivity() {
 
             } else if (direction == Constant.Direction.Vertical) {
                 DlogUtil.d(TAG, "어엥?")
-                axisFrom = Vector3(from.x + percentageDoorWidth * 0.5f, from.y, from.z)
-                axisTo = Vector3(to.x + percentageDoorWidth * 0.5f, to.y, to.z)
+                axisFrom = Vector3(from.x, from.y, from.z)
+                axisTo = Vector3(to.x, to.y, to.z)
+
+
             }
 
             //Rendering
