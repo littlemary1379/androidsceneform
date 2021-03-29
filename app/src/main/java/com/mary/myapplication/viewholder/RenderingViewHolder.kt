@@ -14,12 +14,13 @@ import com.google.ar.sceneform.ux.TransformableNode
 import com.google.ar.sceneform.ux.TransformationSystem
 import com.mary.myapplication.R
 import com.mary.myapplication.util.*
+import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.round
 import kotlin.math.sin
 
-class RenderingViewHolder(context: Context, type : Int) {
+class RenderingViewHolder(context: Context, type: Int) {
 
     companion object {
         private const val TAG = "RenderingViewHolder"
@@ -60,6 +61,8 @@ class RenderingViewHolder(context: Context, type : Int) {
     private var lastYAngle: Float = 0f
 
     private var isScale: Boolean = false
+    private var isFloor: Boolean = false
+
     private var percentageHeight: Float = 0f
     private var percentageWidth: Float = 0f
     private var percentageDoorHeight: Float = 0f
@@ -121,42 +124,67 @@ class RenderingViewHolder(context: Context, type : Int) {
 
         initSceneView()
 
-        if(type == TYPE_3D) {
+        if (type == TYPE_3D) {
             //모델 랜더링
             drawModeling(floorVectorList)
             drawPillar(floorVectorList)
             drawModeling(ceilingVectorList)
 
-            //위로 올라오는 선 긋기(y축만 차이나는 선끼리 찾아 벡터로 연결), y가 높은게 to로 들어가야 선이 연결됨.
-            //전체 model height에서 15% 정도 선이 올라오도록 하는게 좋지 않을까?
-            //여기는 계산을 해둔 상태인데, roomBean에 높이가 있으니까 lineLength는 빼도 될거 같아 :D
+            //치수 랜더링
             drawSizeModeling(ceilingVectorList)
 
-            //만약 창문이나 문이 있을 경우, 먼저 모델링 좌표를 가지고 와서 동일하게 좌표를 조절하고, 랜더링 하면 될듯 ㅇㅁ... ?!
+            //문, 창문 랜더링
             drawDoorAndWindow(rawDoorVectorList, doorHeight)
             drawDoorAndWindow(rawWindowVectorList, windowHeight)
-        } else if(type == TYPE_FLOOR) {
+
+            setTransformableNode()
+
+        } else if (type == TYPE_FLOOR) {
             //바닥만 그리고, 그려진걸 쿼테이션 시켜서 뒤집을 것
+            isFloor = true
             drawModeling(floorVectorList)
+
+            setTransformableNode()
+
+            //랜더링 시간 고려해서 스레드 처리
+            Thread(Runnable {
+                Thread.sleep(1000)
+                quaternionXAxis90Rendering()
+            }).start()
+
         } else {
             drawModeling(floorVectorList)
         }
 
 
+    }
 
-        setTransformableNode()
+    private fun quaternionXAxis90Rendering() {
 
+        DlogUtil.d(TAG, "?? ${parentsTransformableNode.isSelected}")
+
+        var xQuaternion = Quaternion.axisAngle(Vector3(0f, 0f, 0f), 0f)
+        var yQuaternion = Quaternion.axisAngle(
+            Vector3(
+                1f,
+                0f,
+                0f
+            ), 90f
+        )
+
+        parentsTransformableNode.worldRotation =
+            Quaternion.multiply(xQuaternion, yQuaternion)
     }
 
     private fun findView() {
         sceneView = view.findViewById(R.id.sceneView)
     }
 
-    fun pause(){
+    fun pause() {
         sceneView.pause()
     }
 
-    fun resume(){
+    fun resume() {
         sceneView.resume()
     }
 
@@ -324,6 +352,10 @@ class RenderingViewHolder(context: Context, type : Int) {
 
                         if (abs(motionEvent.x - downX) > 40 || abs(motionEvent.y - downY) > 40) {
 
+                            if (isFloor) {
+                                return@addOnPeekTouchListener
+                            }
+
                             DlogUtil.d(TAG, "쿼터니언")
 
                             //개선 필요
@@ -335,6 +367,7 @@ class RenderingViewHolder(context: Context, type : Int) {
 
                             xAngle = percentX * 360 * 0.52f + lastXAngle
                             yAngle = percentY * 360 * 0.52f + lastYAngle
+
 
                             var xQuaternion = Quaternion.axisAngle(Vector3(0f, 1f, 0f), xAngle)
                             //자바의 삼각함수는 라디언만 먹음
@@ -767,7 +800,6 @@ class RenderingViewHolder(context: Context, type : Int) {
                 axisFrom = Vector3(from.x, from.y + percentageDoorHeight * 0.5f, from.z)
                 axisTo = Vector3(to.x, to.y + percentageDoorHeight * 0.5f, to.z)
             } else if (direction == Constant.Direction.Vertical) {
-                DlogUtil.d(TAG, "어엥?")
                 axisFrom = Vector3(from.x, from.y, from.z)
                 axisTo = Vector3(to.x, to.y, to.z)
             }
