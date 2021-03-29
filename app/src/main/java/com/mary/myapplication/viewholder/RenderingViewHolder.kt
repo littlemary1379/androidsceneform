@@ -137,14 +137,10 @@ class RenderingViewHolder(context: Context, type: Int) {
             drawDoorAndWindow(rawDoorVectorList, doorHeight)
             drawDoorAndWindow(rawWindowVectorList, windowHeight)
 
-            setTransformableNode()
-
         } else if (type == TYPE_FLOOR) {
             //바닥만 그리고, 그려진걸 쿼테이션 시켜서 뒤집을 것
             isFloor = true
             drawModeling(floorVectorList)
-
-            setTransformableNode()
 
             //랜더링 시간 고려해서 스레드 처리
             Thread(Runnable {
@@ -152,25 +148,19 @@ class RenderingViewHolder(context: Context, type: Int) {
                 quaternionXAxis90Rendering()
             }).start()
 
+            MathUtil.calculationSlopeNormalVector(rawSecondVector, rawThirdVector)
         } else {
             drawModeling(floorVectorList)
         }
 
+        setTransformableNode()
 
     }
 
     private fun quaternionXAxis90Rendering() {
 
-        DlogUtil.d(TAG, "?? ${parentsTransformableNode.isSelected}")
-
         var xQuaternion = Quaternion.axisAngle(Vector3(0f, 0f, 0f), 0f)
-        var yQuaternion = Quaternion.axisAngle(
-            Vector3(
-                1f,
-                0f,
-                0f
-            ), 90f
-        )
+        var yQuaternion = Quaternion.axisAngle(Vector3(1f, 0f, 0f), 90f)
 
         parentsTransformableNode.worldRotation =
             Quaternion.multiply(xQuaternion, yQuaternion)
@@ -413,6 +403,7 @@ class RenderingViewHolder(context: Context, type: Int) {
 
         parentsTransformableNode.scaleController.minScale = 1f
         parentsTransformableNode.scaleController.maxScale = 3f
+        parentsTransformableNode.rotationController.isEnabled = false
 
     }
 
