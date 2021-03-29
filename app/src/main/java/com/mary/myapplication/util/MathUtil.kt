@@ -42,6 +42,10 @@ object MathUtil {
 
     }
 
+    fun calculationStraightLineEquation(vector: Vector3, slope : Double){
+        val b : Double = vector.z - slope * vector.x
+    }
+
 
     fun calculationQuadratic() {
         var a: Double = 1.25
