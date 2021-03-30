@@ -14,7 +14,6 @@ import com.google.ar.sceneform.ux.TransformableNode
 import com.google.ar.sceneform.ux.TransformationSystem
 import com.mary.myapplication.R
 import com.mary.myapplication.util.*
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.round
@@ -141,14 +140,14 @@ class RenderingViewHolder(context: Context, type: Int) {
             //바닥만 그리고, 그려진걸 쿼테이션 시켜서 뒤집을 것
             isFloor = true
             drawModeling(floorVectorList)
+            testModeling(floorVectorList)
 
             //랜더링 시간 고려해서 스레드 처리
-            Thread(Runnable {
+            Thread {
                 Thread.sleep(1000)
                 quaternionXAxis90Rendering()
-            }).start()
+            }.start()
 
-            MathUtil.calculationSlopeNormalVector(rawSecondVector, rawThirdVector)
         } else {
             drawModeling(floorVectorList)
         }
@@ -625,6 +624,59 @@ class RenderingViewHolder(context: Context, type: Int) {
         }
     }
 
+    private fun testModeling(vectorList: List<Vector3>) {
+
+        drawType = Constant.DrawType.TYPE_MEASURE
+        var length = 0.15
+
+        for (i in vectorList.indices) {
+            if (i == vectorList.size - 1) {
+                var slope = MathUtil.calculationSlopeNormalVector(vectorList[i], vectorList[0])
+
+                var xzlist1 = MathUtil.calculationStraightLineEquation(vectorList[i], slope, length)
+                var newVector1 = Vector3(xzlist1[0].toFloat(), 0f, xzlist1[1].toFloat())
+
+                var xzlist2 = MathUtil.calculationStraightLineEquation(vectorList[0], slope, length)
+                var newVector2 = Vector3(xzlist2[0].toFloat(), 0f, xzlist2[1].toFloat())
+
+                addLineBetweenPoints(vectorList[i], newVector1, Constant.gowoonwooriHexColorCode1)
+                addLineBetweenPoints(vectorList[0], newVector2, Constant.gowoonwooriHexColorCode1)
+
+                var xzlist3 = MathUtil.calculationStraightLineEquation(vectorList[i], slope, length/2)
+                var newVector3 = Vector3(xzlist3[0].toFloat(), 0f, xzlist3[1].toFloat())
+
+                var xzlist4 = MathUtil.calculationStraightLineEquation(vectorList[0], slope, length/2)
+                var newVector4 = Vector3(xzlist4[0].toFloat(), 0f, xzlist4[1].toFloat())
+
+                addLineBetweenPoints(newVector3, newVector4, Constant.gowoonwooriHexColorCode1)
+
+            } else {
+                var slope = MathUtil.calculationSlopeNormalVector(vectorList[i], vectorList[i+1])
+
+                var xzlist1 = MathUtil.calculationStraightLineEquation(vectorList[i], slope, length)
+                var newVector1 = Vector3(xzlist1[0].toFloat(), 0f, xzlist1[1].toFloat())
+
+                var xzlist2 = MathUtil.calculationStraightLineEquation(vectorList[i+1], slope, length)
+                var newVector2 = Vector3(xzlist2[0].toFloat(), 0f, xzlist2[1].toFloat())
+
+                addLineBetweenPoints(vectorList[i], newVector1, Constant.gowoonwooriHexColorCode1)
+                addLineBetweenPoints(vectorList[i+1], newVector2, Constant.gowoonwooriHexColorCode1)
+
+                var xzlist3 = MathUtil.calculationStraightLineEquation(vectorList[i], slope, length/2)
+                var newVector3 = Vector3(xzlist3[0].toFloat(), 0f, xzlist3[1].toFloat())
+
+                var xzlist4 = MathUtil.calculationStraightLineEquation(vectorList[i+1], slope, length/2)
+                var newVector4 = Vector3(xzlist4[0].toFloat(), 0f, xzlist4[1].toFloat())
+
+                addLineBetweenPoints(newVector3, newVector4, Constant.gowoonwooriHexColorCode1)
+
+            }
+
+        }
+
+
+    }
+
     private fun addLineBetweenPoints(from: Vector3, to: Vector3, colorCode: String) {
         // Node that is automatically positioned in world space based on the ARCore Anchor.
         transformableNode = TransformableNode(transformationSystem)
@@ -658,8 +710,18 @@ class RenderingViewHolder(context: Context, type: Int) {
                 from,
                 to
             )
-        }
+        } else if (drawType == Constant.DrawType.TYPE_MEASURE) {
 
+            RenderingUtil.drawCylinderLine(
+                view.context,
+                colorCode,
+                0.0005f * cylinderDiameter,
+                lineLength,
+                transformableNode,
+                from,
+                to
+            )
+        }
     }
 
     private fun startLength(

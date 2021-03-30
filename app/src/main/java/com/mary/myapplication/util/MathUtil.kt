@@ -34,7 +34,7 @@ object MathUtil {
     }
 
     //기울기를 구함
-    fun calculationSlopeNormalVector(vector1: Vector3, vector2: Vector3) {
+    fun calculationSlopeNormalVector(vector1: Vector3, vector2: Vector3) : Double{
         var x: Double
         var z: Double = 1.0
 
@@ -42,24 +42,29 @@ object MathUtil {
 
         DlogUtil.d(TAG, "법선벡터의 기울기 = ${x / z}")
 
-        calculationStraightLineEquation(vector1, x / z)
-        //calculationStraightLineEquation(vector2, x / z)
+        return x/z
 
     }
 
     //기울기를 통해, y=ax+b의 b값을 구함
-    fun calculationStraightLineEquation(vector: Vector3, slope: Double) {
+    fun calculationStraightLineEquation(vector: Vector3, slope: Double, length: Double) : List<Double> {
         val b: Double = vector.z - slope * vector.x
 
         DlogUtil.d(TAG, "b = $b")
-        calculationQuadratic(vector, slope, b, 10.0)
+        return calculationQuadratic(vector, slope, b, length)
     }
 
 
-    fun calculationQuadratic(vector: Vector3, slope: Double, lineB: Double, length: Double) {
+    fun calculationQuadratic(vector: Vector3, slope: Double, lineB: Double, length: Double) : List<Double> {
         var a: Double = 1 + squared(slope, 2.0)
         var b: Double = -(vector.x * 2) + ((vector.z - lineB) * -slope * 2)
-        var c: Double = squared(vector.x, 2.0) + squared(vector.z - lineB, 2.0) - squared(length, 2.0)
+        var c: Double =
+            squared(vector.x, 2.0) + squared(vector.z - lineB, 2.0) - squared(length, 2.0)
+
+        var r1: Double = 0.0
+        var r2: Double = 0.0
+
+        var x: Double = 0.0
 
 //        DlogUtil.d(TAG, "squared(vector.x, 2.0) = ${squared(vector.x, 2.0)}")
 //        DlogUtil.d(TAG, "vector.z = ${(vector.z)}")
@@ -77,8 +82,8 @@ object MathUtil {
 
         // 실근
         if (disc > 0) {
-            var r1 = (-b + sqr) / (2.0 * a)
-            var r2 = (-b - sqr) / (2.0 * a)
+            r1 = (-b + sqr) / (2.0 * a)
+            r2 = (-b - sqr) / (2.0 * a)
 
             DlogUtil.d(TAG, "이게 실근인가? r1 : $r1")
             DlogUtil.d(TAG, "이게 실근인가? r2 : $r2")
@@ -86,7 +91,7 @@ object MathUtil {
 
         //중근
         else if (disc == 0.0) {
-            var r1 = -b / (2.0 * a)
+            r1 = -b / (2.0 * a)
 
             DlogUtil.d(TAG, "이게 중근인가? r1 : $r1")
         }
@@ -100,6 +105,15 @@ object MathUtil {
             DlogUtil.d(TAG, "이게 허근인가? s1 : $r+$s1")
             DlogUtil.d(TAG, "이게 허근인가? s2 : $r+$s2")
         }
+
+        if (r1 > vector.x) {
+            x = r1
+        } else if (r2 > vector.x) {
+            x = r2
+        }
+
+        var y: Double = slope * x + lineB
+        return listOf(x, y)
 
     }
 }
