@@ -12,6 +12,10 @@ object MathUtil {
         return number.toDouble().pow(root).toFloat()
     }
 
+    fun squared(number: Double, root: Double): Double {
+        return number.pow(root)
+    }
+
     fun calculationLength(numbers: List<Float>): Float {
         var total = 0f
         for (i in numbers.indices) {
@@ -29,30 +33,46 @@ object MathUtil {
         return Vector3(addVectorX, addVectorY, addVectorZ)
     }
 
-    fun calculationSlopeNormalVector(vector1: Vector3, vector2: Vector3){
-        var x : Double
-        var z : Double = 1.0
+    //기울기를 구함
+    fun calculationSlopeNormalVector(vector1: Vector3, vector2: Vector3) {
+        var x: Double
+        var z: Double = 1.0
 
-        x = - ( z * (vector2.x-vector1.x) / (vector2.z - vector1.z) )
+        x = -(z * (vector2.x - vector1.x) / (vector2.z - vector1.z))
 
-        DlogUtil.d(TAG, "${(vector2.x-vector1.x)}")
-        DlogUtil.d(TAG, "${(vector2.z - vector1.z)}")
-        DlogUtil.d(TAG, "x = $x")
-        DlogUtil.d(TAG, "법선벡터의 기울기 = ${x/z}")
+        DlogUtil.d(TAG, "법선벡터의 기울기 = ${x / z}")
+
+        calculationStraightLineEquation(vector1, x / z)
+        //calculationStraightLineEquation(vector2, x / z)
 
     }
 
-    fun calculationStraightLineEquation(vector: Vector3, slope : Double){
-        val b : Double = vector.z - slope * vector.x
+    //기울기를 통해, y=ax+b의 b값을 구함
+    fun calculationStraightLineEquation(vector: Vector3, slope: Double) {
+        val b: Double = vector.z - slope * vector.x
+
+        DlogUtil.d(TAG, "b = $b")
+        calculationQuadratic(vector, slope, b, 10.0)
     }
 
 
-    fun calculationQuadratic() {
-        var a: Double = 1.25
-        var b: Double = -75.0
-        var c: Double = 1025.0
+    fun calculationQuadratic(vector: Vector3, slope: Double, lineB: Double, length: Double) {
+        var a: Double = 1 + squared(slope, 2.0)
+        var b: Double = -(vector.x * 2) + ((vector.z - lineB) * -slope * 2)
+        var c: Double = squared(vector.x, 2.0) + squared(vector.z - lineB, 2.0) - squared(length, 2.0)
 
-        var disc: Double = b * b - 4.0 * c
+//        DlogUtil.d(TAG, "squared(vector.x, 2.0) = ${squared(vector.x, 2.0)}")
+//        DlogUtil.d(TAG, "vector.z = ${(vector.z)}")
+//        DlogUtil.d(TAG, "b = ${lineB}")
+//        DlogUtil.d(TAG, "vector.z - b = ${(vector.z - lineB)}")
+//        DlogUtil.d(TAG, "squared(vector.z - b, 2.0) = ${squared(vector.z - lineB, 2.0)}")
+//        DlogUtil.d(TAG, "squared(length, 2.0) = ${squared(length, 2.0)}")
+        DlogUtil.d(TAG, "a = ${a}")
+        DlogUtil.d(TAG, "b = ${b}")
+        DlogUtil.d(TAG, "c = ${c}")
+
+
+        var disc: Double = b * b - 4.0 * a * c
         var sqr: Double = sqrt(disc)
 
         // 실근
@@ -72,7 +92,7 @@ object MathUtil {
         }
 
         //허근
-        else if (disc == 0.0) {
+        else if (disc < 0.0) {
             var r = -b / (2.0 * a)
             var s1 = sqr / (2.0 * a)
             var s2 = -sqr / (2.0 * a)
