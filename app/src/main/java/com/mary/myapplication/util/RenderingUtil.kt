@@ -199,24 +199,18 @@ object RenderingUtil {
 
                     Constant.Direction.FLOOR -> {
 
-                        DlogUtil.d(TAG, to.z > from.z)
+                        val rotationFromAToB: Quaternion = if (to.z > from.z) {
 
-                        val rotationFromAToB: Quaternion
-
-                        if (to.z > from.z) {
-
-                            rotationFromAToB =
-                                Quaternion.lookRotation(
-                                    directionFromTopToBottom,
-                                    Vector3.left()
-                                )
+                            Quaternion.lookRotation(
+                                directionFromTopToBottom,
+                                Vector3.left()
+                            )
                         } else {
 
-                            rotationFromAToB =
-                                Quaternion.lookRotation(
-                                    directionFromTopToBottom,
-                                    Vector3.right()
-                                )
+                            Quaternion.lookRotation(
+                                directionFromTopToBottom,
+                                Vector3.right()
+                            )
                         }
 
                         indicatorModel.worldRotation = Quaternion.multiply(

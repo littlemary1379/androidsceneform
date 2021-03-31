@@ -34,28 +34,50 @@ object MathUtil {
     }
 
     //기울기를 구함
-    fun calculationSlopeNormalVector(vector1: Vector3, vector2: Vector3) : Double{
+    fun calculationSlopeNormalVector(vector1: Vector3, vector2: Vector3): Double {
         var x: Double
         var z: Double = 1.0
 
-        x = -(z * (vector2.x - vector1.x) / (vector2.z - vector1.z))
-
-        DlogUtil.d(TAG, "법선벡터의 기울기 = ${x / z}")
-
-        return x/z
+        return if ((vector2.z - vector1.z) == 0f) {
+            DlogUtil.d(TAG, "법선벡터의 기울기 = 0")
+            0.0
+        } else {
+            x = -(z * (vector2.x - vector1.x) / (vector2.z - vector1.z))
+            DlogUtil.d(TAG, "법선벡터의 기울기 = ${x / z}")
+            x / z
+        }
 
     }
 
     //기울기를 통해, y=ax+b의 b값을 구함
-    fun calculationStraightLineEquation(vector: Vector3, slope: Double, length: Double, upper: Boolean) : List<Double> {
-        val b: Double = vector.z - slope * vector.x
+    //slope가 0이고, b가 0일때 값 처리해야함
+    fun calculationStraightLineEquation(
+        vector: Vector3,
+        slope: Double,
+        length: Double,
+        upper: Int
+    ): List<Double> {
 
-        DlogUtil.d(TAG, "b = $b")
+        var b: Double
+
+        if (slope == 0.0) {
+            b = vector.z.toDouble()
+        } else {
+            b = vector.z - slope * vector.x
+            DlogUtil.d(TAG, "b = $b")
+        }
+
         return calculationQuadratic(vector, slope, b, length, upper)
+
     }
 
-
-    fun calculationQuadratic(vector: Vector3, slope: Double, lineB: Double, length: Double, upper : Boolean) : List<Double> {
+    fun calculationQuadratic(
+        vector: Vector3,
+        slope: Double,
+        lineB: Double,
+        length: Double,
+        upper: Int
+    ): List<Double> {
         var a: Double = 1 + squared(slope, 2.0)
         var b: Double = -(vector.x * 2) + ((vector.z - lineB) * -slope * 2)
         var c: Double =
@@ -64,69 +86,46 @@ object MathUtil {
         var r1: Double = 0.0
         var r2: Double = 0.0
 
-        var x1: Double = 0.0
-        var x2: Double = 0.0
-        var y1: Double = 0.0
-        var y2: Double = 0.0
-
-//        DlogUtil.d(TAG, "squared(vector.x, 2.0) = ${squared(vector.x, 2.0)}")
-//        DlogUtil.d(TAG, "vector.z = ${(vector.z)}")
-//        DlogUtil.d(TAG, "b = ${lineB}")
-//        DlogUtil.d(TAG, "vector.z - b = ${(vector.z - lineB)}")
-//        DlogUtil.d(TAG, "squared(vector.z - b, 2.0) = ${squared(vector.z - lineB, 2.0)}")
-//        DlogUtil.d(TAG, "squared(length, 2.0) = ${squared(length, 2.0)}")
-        DlogUtil.d(TAG, "a = ${a}")
-        DlogUtil.d(TAG, "b = ${b}")
-        DlogUtil.d(TAG, "c = ${c}")
-
-
         var disc: Double = b * b - 4.0 * a * c
         var sqr: Double = sqrt(disc)
 
         // 실근
-        if (disc > 0) {
-            r1 = (-b + sqr) / (2.0 * a)
-            r2 = (-b - sqr) / (2.0 * a)
+        when {
+            disc > 0 -> {
+                r1 = (-b + sqr) / (2.0 * a)
+                r2 = (-b - sqr) / (2.0 * a)
+            }
 
-            DlogUtil.d(TAG, "이게 실근인가? r1 : $r1")
-            DlogUtil.d(TAG, "이게 실근인가? r2 : $r2")
+            //중근
+            disc == 0.0 -> {
+                r1 = -b / (2.0 * a)
+            }
+
+            //허근
+            disc < 0.0 -> {
+                DlogUtil.d(TAG, "허근")
+            }
         }
 
-        //중근
-        else if (disc == 0.0) {
-            r1 = -b / (2.0 * a)
+        var x: Double = 0.0
 
-            DlogUtil.d(TAG, "이게 중근인가? r1 : $r1")
-        }
-
-        //허근
-        else if (disc < 0.0) {
-            var r = -b / (2.0 * a)
-            var s1 = sqr / (2.0 * a)
-            var s2 = -sqr / (2.0 * a)
-
-            DlogUtil.d(TAG, "이게 허근인가? s1 : $r+$s1")
-            DlogUtil.d(TAG, "이게 허근인가? s2 : $r+$s2")
-        }
-
-        var x : Double = 0.0
-
-        if(upper) {
+        if (upper == 1) {
             if (r1 < vector.x) {
                 x = r1
             } else if (r2 < vector.x) {
                 x = r2
             }
-        }else {
+        } else if(upper == -1){
             if (r1 > vector.x) {
                 x = r1
             } else if (r2 > vector.x) {
                 x = r2
             }
+        } else {
+
         }
 
         var y: Double = slope * x + lineB
         return listOf(x, y)
-
     }
 }
