@@ -378,19 +378,19 @@ class RenderingViewHolder(context: Context, type: Int) {
         drawType = Constant.DrawType.TYPE_ROOM
 
         for (i in vectorList.indices) {
-            if (i == vectorList.size - 1) {
-                addLineBetweenPoints(
-                    vectorList[i],
-                    vectorList[0],
-                    Constant.gowoonwooriHexColorCode1
-                )
+
+            var next: Int = if (i == vectorList.size - 1) {
+                0
             } else {
-                addLineBetweenPoints(
-                    vectorList[i],
-                    vectorList[i + 1],
-                    Constant.gowoonwooriHexColorCode1
-                )
+                i + 1
             }
+
+            addLineBetweenPoints(
+                vectorList[i],
+                vectorList[next],
+                Constant.gowoonwooriHexColorCode1
+            )
+
         }
     }
 
@@ -570,23 +570,20 @@ class RenderingViewHolder(context: Context, type: Int) {
     private fun drawSizeModeling(vectorList: List<Vector3>) {
 
         for (i in vectorList.indices) {
-            if (i == vectorList.size - 1) {
-                startLength(
-                    vectorList[i],
-                    Vector3(vectorList[i].x, 0f, vectorList[i].z),
-                    height,
-                    Constant.Direction.Horizontal
-                )
-                drawLengthLine(vectorList[i], vectorList[0], Constant.Direction.Horizontal)
+
+            var next: Int = if (i == vectorList.size - 1) {
+                0
             } else {
-                startLength(
-                    vectorList[i],
-                    Vector3(vectorList[i].x, 0f, vectorList[i].z),
-                    height,
-                    Constant.Direction.Horizontal
-                )
-                drawLengthLine(vectorList[i], vectorList[i + 1], Constant.Direction.Horizontal)
+                i + 1
             }
+
+            startLength(
+                vectorList[i],
+                Vector3(vectorList[i].x, 0f, vectorList[i].z),
+                height,
+                Constant.Direction.Horizontal
+            )
+            drawLengthLine(vectorList[i], vectorList[next], Constant.Direction.Horizontal)
         }
     }
 
@@ -594,14 +591,14 @@ class RenderingViewHolder(context: Context, type: Int) {
 
         drawType = Constant.DrawType.TYPE_MEASURE
         var length = 0.15
-        var upper : Int = 0
+        var upper: Int = 0
 
         for (i in vectorList.indices) {
 
-            var next : Int = if (i == vectorList.size - 1) {
+            var next: Int = if (i == vectorList.size - 1) {
                 0
             } else {
-                i+1
+                i + 1
             }
 
             var slope = MathUtil.calculationSlopeNormalVector(vectorList[i], vectorList[next])
@@ -609,25 +606,29 @@ class RenderingViewHolder(context: Context, type: Int) {
             //upper 1 :  감소추이 upper 0 : 평행 upper -1 : 증가추이
             if (vectorList[i].z < vectorList[next].z) {
                 upper = 1
-            } else if(slope == 0.0 || vectorList[i].z == vectorList[next].z) {
+            } else if (slope == 0.0 || vectorList[i].z == vectorList[next].z) {
                 upper = 0
             } else if (vectorList[i].z > vectorList[next].z) {
                 upper = -1
             }
 
-            var xzlist1 = MathUtil.calculationStraightLineEquation(vectorList[i], slope, length, upper)
+            var xzlist1 =
+                MathUtil.calculationStraightLineEquation(vectorList[i], slope, length, upper)
             var newVector1 = Vector3(xzlist1[0].toFloat(), 0f, xzlist1[1].toFloat())
 
-            var xzlist2 = MathUtil.calculationStraightLineEquation(vectorList[next], slope, length, upper)
+            var xzlist2 =
+                MathUtil.calculationStraightLineEquation(vectorList[next], slope, length, upper)
             var newVector2 = Vector3(xzlist2[0].toFloat(), 0f, xzlist2[1].toFloat())
 
             addLineBetweenPoints(vectorList[i], newVector1, Constant.gowoonwooriHexColorCode1)
             addLineBetweenPoints(vectorList[next], newVector2, Constant.gowoonwooriHexColorCode1)
 
-            var xzlist3 = MathUtil.calculationStraightLineEquation(vectorList[i], slope, length/2, upper)
+            var xzlist3 =
+                MathUtil.calculationStraightLineEquation(vectorList[i], slope, length / 2, upper)
             var newVector3 = Vector3(xzlist3[0].toFloat(), 0f, xzlist3[1].toFloat())
 
-            var xzlist4 = MathUtil.calculationStraightLineEquation(vectorList[next], slope, length/2, upper)
+            var xzlist4 =
+                MathUtil.calculationStraightLineEquation(vectorList[next], slope, length / 2, upper)
             var newVector4 = Vector3(xzlist4[0].toFloat(), 0f, xzlist4[1].toFloat())
 
             addLineBetweenPoints(newVector3, newVector4, Constant.gowoonwooriHexColorCode1)
