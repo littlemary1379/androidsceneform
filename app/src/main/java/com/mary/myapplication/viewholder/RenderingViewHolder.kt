@@ -591,7 +591,12 @@ class RenderingViewHolder(context: Context, type: Int) {
 
         drawType = Constant.DrawType.TYPE_MEASURE
         var length = 0.15
-        var upper: Int = 0
+        var upper = 0
+
+        var newVector1: Vector3
+        var newVector2: Vector3
+        var newVector3: Vector3
+        var newVector4: Vector3
 
         for (i in vectorList.indices) {
 
@@ -604,32 +609,59 @@ class RenderingViewHolder(context: Context, type: Int) {
             var slope = MathUtil.calculationSlopeNormalVector(vectorList[i], vectorList[next])
 
             //upper 1 :  감소추이 upper 0 : 평행 upper -1 : 증가추이
-            if (vectorList[i].z < vectorList[next].z) {
-                upper = 1
-            } else if (slope == 0.0 || vectorList[i].z == vectorList[next].z) {
+            if (slope == 0.0 || vectorList[i].z == vectorList[next].z) {
+
                 upper = 0
-            } else if (vectorList[i].z > vectorList[next].z) {
-                upper = -1
+
+                newVector1 = Vector3(vectorList[i].x, 0f, (vectorList[i].z + length).toFloat())
+                newVector2 =
+                    Vector3(vectorList[next].x, 0f, (vectorList[next].z + length).toFloat())
+
+                newVector3 = Vector3(vectorList[i].x, 0f, (vectorList[i].z + length / 2).toFloat())
+                newVector4 =
+                    Vector3(vectorList[next].x, 0f, (vectorList[next].z + length / 2).toFloat())
+
+            } else {
+
+                if (vectorList[i].z < vectorList[next].z) {
+                    upper = 1
+                } else if (vectorList[i].z > vectorList[next].z) {
+                    upper = -1
+                }
+
+                var xzlist1 =
+                    MathUtil.calculationStraightLineEquation(vectorList[i], slope, length, upper)
+                newVector1 = Vector3(xzlist1[0].toFloat(), 0f, xzlist1[1].toFloat())
+
+                var xzlist2 =
+                    MathUtil.calculationStraightLineEquation(vectorList[next], slope, length, upper)
+                newVector2 = Vector3(xzlist2[0].toFloat(), 0f, xzlist2[1].toFloat())
+
+                var xzlist3 =
+                    MathUtil.calculationStraightLineEquation(
+                        vectorList[i],
+                        slope,
+                        length / 2,
+                        upper
+                    )
+                newVector3 = Vector3(xzlist3[0].toFloat(), 0f, xzlist3[1].toFloat())
+
+                var xzlist4 =
+                    MathUtil.calculationStraightLineEquation(
+                        vectorList[next],
+                        slope,
+                        length / 2,
+                        upper
+                    )
+                newVector4 = Vector3(xzlist4[0].toFloat(), 0f, xzlist4[1].toFloat())
             }
 
-            var xzlist1 =
-                MathUtil.calculationStraightLineEquation(vectorList[i], slope, length, upper)
-            var newVector1 = Vector3(xzlist1[0].toFloat(), 0f, xzlist1[1].toFloat())
-
-            var xzlist2 =
-                MathUtil.calculationStraightLineEquation(vectorList[next], slope, length, upper)
-            var newVector2 = Vector3(xzlist2[0].toFloat(), 0f, xzlist2[1].toFloat())
-
             addLineBetweenPoints(vectorList[i], newVector1, Constant.gowoonwooriHexColorCode1)
-            addLineBetweenPoints(vectorList[next], newVector2, Constant.gowoonwooriHexColorCode1)
-
-            var xzlist3 =
-                MathUtil.calculationStraightLineEquation(vectorList[i], slope, length / 2, upper)
-            var newVector3 = Vector3(xzlist3[0].toFloat(), 0f, xzlist3[1].toFloat())
-
-            var xzlist4 =
-                MathUtil.calculationStraightLineEquation(vectorList[next], slope, length / 2, upper)
-            var newVector4 = Vector3(xzlist4[0].toFloat(), 0f, xzlist4[1].toFloat())
+            addLineBetweenPoints(
+                vectorList[next],
+                newVector2,
+                Constant.gowoonwooriHexColorCode1
+            )
 
             addLineBetweenPoints(newVector3, newVector4, Constant.gowoonwooriHexColorCode1)
             setLengthLine(newVector3, newVector4, Constant.Direction.FLOOR)

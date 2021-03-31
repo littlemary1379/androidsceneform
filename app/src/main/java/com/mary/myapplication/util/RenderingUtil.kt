@@ -199,24 +199,46 @@ object RenderingUtil {
 
                     Constant.Direction.FLOOR -> {
 
-                        val rotationFromAToB: Quaternion = if (to.z > from.z) {
+                        when {
+                            to.z > from.z -> {
 
-                            Quaternion.lookRotation(
-                                directionFromTopToBottom,
-                                Vector3.left()
-                            )
-                        } else {
+                                var rotationFromAToB = Quaternion.lookRotation(
+                                    directionFromTopToBottom,
+                                    Vector3.left()
+                                )
 
-                            Quaternion.lookRotation(
-                                directionFromTopToBottom,
-                                Vector3.right()
-                            )
+                                indicatorModel.worldRotation = Quaternion.multiply(
+                                    rotationFromAToB,
+                                    Quaternion.axisAngle(Vector3(0f, 1f, 0f), 90f)
+                                )
+                            }
+                            to.z < from.z -> {
+                                var rotationFromAToB = Quaternion.lookRotation(
+                                    directionFromTopToBottom,
+                                    Vector3.right()
+                                )
+
+                                indicatorModel.worldRotation = Quaternion.multiply(
+                                    rotationFromAToB,
+                                    Quaternion.axisAngle(Vector3(0f, 1f, 0f), 90f)
+                                )
+
+                            }
+                            else -> {
+                                var rotationFromAToB = Quaternion.lookRotation(
+                                    Vector3(0f,0f,0f),
+                                    Vector3.zero()
+                                )
+
+                                indicatorModel.worldRotation = Quaternion.multiply(
+                                    rotationFromAToB,
+                                    Quaternion.axisAngle(Vector3(1f, 0f, 0f), 90f)
+                                )
+                            }
+
                         }
 
-                        indicatorModel.worldRotation = Quaternion.multiply(
-                            rotationFromAToB,
-                            Quaternion.axisAngle(Vector3(.0f, 1f, 0f), 90f)
-                        )
+
 
                     }
                 }
