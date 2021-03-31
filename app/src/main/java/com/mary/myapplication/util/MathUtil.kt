@@ -47,15 +47,15 @@ object MathUtil {
     }
 
     //기울기를 통해, y=ax+b의 b값을 구함
-    fun calculationStraightLineEquation(vector: Vector3, slope: Double, length: Double) : List<Double> {
+    fun calculationStraightLineEquation(vector: Vector3, slope: Double, length: Double, upper: Boolean) : List<Double> {
         val b: Double = vector.z - slope * vector.x
 
         DlogUtil.d(TAG, "b = $b")
-        return calculationQuadratic(vector, slope, b, length)
+        return calculationQuadratic(vector, slope, b, length, upper)
     }
 
 
-    fun calculationQuadratic(vector: Vector3, slope: Double, lineB: Double, length: Double) : List<Double> {
+    fun calculationQuadratic(vector: Vector3, slope: Double, lineB: Double, length: Double, upper : Boolean) : List<Double> {
         var a: Double = 1 + squared(slope, 2.0)
         var b: Double = -(vector.x * 2) + ((vector.z - lineB) * -slope * 2)
         var c: Double =
@@ -64,7 +64,10 @@ object MathUtil {
         var r1: Double = 0.0
         var r2: Double = 0.0
 
-        var x: Double = 0.0
+        var x1: Double = 0.0
+        var x2: Double = 0.0
+        var y1: Double = 0.0
+        var y2: Double = 0.0
 
 //        DlogUtil.d(TAG, "squared(vector.x, 2.0) = ${squared(vector.x, 2.0)}")
 //        DlogUtil.d(TAG, "vector.z = ${(vector.z)}")
@@ -106,10 +109,20 @@ object MathUtil {
             DlogUtil.d(TAG, "이게 허근인가? s2 : $r+$s2")
         }
 
-        if (r1 > vector.x) {
-            x = r1
-        } else if (r2 > vector.x) {
-            x = r2
+        var x : Double = 0.0
+
+        if(upper) {
+            if (r1 < vector.x) {
+                x = r1
+            } else if (r2 < vector.x) {
+                x = r2
+            }
+        }else {
+            if (r1 > vector.x) {
+                x = r1
+            } else if (r2 > vector.x) {
+                x = r2
+            }
         }
 
         var y: Double = slope * x + lineB
