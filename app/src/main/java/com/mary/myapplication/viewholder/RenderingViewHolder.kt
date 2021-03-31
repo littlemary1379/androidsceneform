@@ -13,6 +13,7 @@ import com.google.ar.sceneform.ux.FootprintSelectionVisualizer
 import com.google.ar.sceneform.ux.TransformableNode
 import com.google.ar.sceneform.ux.TransformationSystem
 import com.mary.myapplication.R
+import com.mary.myapplication.temp.RoomData
 import com.mary.myapplication.util.*
 import kotlin.math.abs
 import kotlin.math.cos
@@ -67,89 +68,62 @@ class RenderingViewHolder(context: Context, type: Int) {
     private var percentageDoorHeight: Float = 0f
     private var percentageDoorWidth: Float = 0f
 
+    private var roomData = RoomData()
     private lateinit var drawType: Constant.DrawType
 
     init {
+
         findView()
-
-        //입방체 바닥
-        //이후 jsonObject로 받아올거임.....
-        var rawFirstVector = Vector3(0f, 0f, 0f)
-        var rawSecondVector = Vector3(30f, 0f, 0f)
-        var rawThirdVector = Vector3(40f, 0f, -20f)
-        var rawFourthVector = Vector3(25f, 0f, -30f)
-        var rawFifthVector = Vector3(20f, 0f, -40f)
-        var rawSixthVector = Vector3(-5f, 0f, -30f)
-        var rawSeventhVector = Vector3(-10f, 0f, -20f)
-        var rawEighthVector = Vector3(-17f, 0f, -15f)
-        var rawNinthVector = Vector3(-27f, 0f, -10f)
-        var rawTenthVector = Vector3(-25f, 0f, -5f)
-
-        var rawVectorList = listOf(
-            rawFirstVector,
-            rawSecondVector,
-            rawThirdVector,
-            rawFourthVector,
-            rawFifthVector,
-            rawSixthVector,
-            rawSeventhVector,
-            rawEighthVector,
-            rawNinthVector,
-            rawTenthVector
-        )
         height = 20f
-
-        var rawFirstDoorVector = Vector3(10f, 0f, 0f)
-        var rawSecondDoorVector = Vector3(18f, 0f, 0f)
         var doorHeight = 15f
-        var rawDoorVectorList = listOf(rawFirstDoorVector, rawSecondDoorVector)
-
-        var rawFirstWindowVector = Vector3(24f, 5f, -32f)
-        var rawSecondWindowVector = Vector3(21f, 5f, -38f)
         var windowHeight = 10f
-        var rawWindowVectorList = listOf(rawFirstWindowVector, rawSecondWindowVector)
 
-        maxLength = LocationUtil.longLength(rawVectorList, height)
+        maxLength = LocationUtil.longLength(roomData.rawVectorList, height)
 
         DlogUtil.d(
             TAG,
             "가장 큰 길이 $maxLength"
         )
 
-        initVectorList(rawVectorList)
+        initVectorList(roomData.rawVectorList)
 
         initCenterVector(vectorList)
         setCameraPosition(cameraPosition)
 
         initSceneView()
 
-        if (type == TYPE_3D) {
-            //모델 랜더링
-            drawModeling(floorVectorList)
-            drawPillar(floorVectorList)
-            drawModeling(ceilingVectorList)
+        when (type) {
 
-            //치수 랜더링
-            drawSizeModeling(ceilingVectorList)
+            TYPE_3D -> {
+                //모델 랜더링
+                drawModeling(floorVectorList)
+                drawPillar(floorVectorList)
+                drawModeling(ceilingVectorList)
 
-            //문, 창문 랜더링
-            drawDoorAndWindow(rawDoorVectorList, doorHeight)
-            drawDoorAndWindow(rawWindowVectorList, windowHeight)
+                //치수 랜더링
+                drawSizeModeling(ceilingVectorList)
 
-        } else if (type == TYPE_FLOOR) {
-            //바닥만 그리고, 그려진걸 쿼테이션 시켜서 뒤집을 것
-            isFloor = true
-            drawModeling(floorVectorList)
-            testModeling(floorVectorList)
+                //문, 창문 랜더링
+                drawDoorAndWindow(roomData.rawDoorVectorList, doorHeight)
+                drawDoorAndWindow(roomData.rawWindowVectorList, windowHeight)
+            }
 
-            //랜더링 시간 고려해서 스레드 처리
-            Thread {
-                Thread.sleep(1000)
-                quaternionXAxis90Rendering()
-            }.start()
+            TYPE_FLOOR -> {
+                //바닥만 그리고, 그려진걸 쿼테이션 시켜서 뒤집을 것
+                isFloor = true
+                drawModeling(floorVectorList)
+                testModeling(floorVectorList)
 
-        } else {
-            drawModeling(floorVectorList)
+                //랜더링 시간 고려해서 스레드 처리
+                Thread {
+                    Thread.sleep(1000)
+                    quaternionXAxis90Rendering()
+                }.start()
+            }
+
+            else -> {
+                drawModeling(floorVectorList)
+            }
         }
 
         setTransformableNode()
@@ -216,7 +190,6 @@ class RenderingViewHolder(context: Context, type: Int) {
         var minY = vectorList[0].y
         var maxY = vectorList[0].y
 
-
         for (i in vectorList.indices) {
             cameraX += vectorList[i].x
             cameraY += vectorList[i].y
@@ -253,24 +226,22 @@ class RenderingViewHolder(context: Context, type: Int) {
 
         if ((maxX - minX) < (maxZ - minZ) && (maxY - minY) < (maxZ - minZ)) {
 
-            DlogUtil.d(TAG, "z로 맞춰야 할듯?")
             cylinderDiameter = (maxZ - minZ) * 2
             textSize = (maxX - minX)
+            DlogUtil.d(TAG, "z로 맞춰야 할듯? $cylinderDiameter")
 
         } else if (deviceWidth / deviceHeight.toDouble() < (maxX - minX) / (maxY - minY)) {
-            DlogUtil.d(TAG, deviceWidth / deviceHeight.toDouble())
-            DlogUtil.d(TAG, (maxX - minX) / (maxY - minY))
-            DlogUtil.d(TAG, "X로 맞춰야 할듯?")
+
             cylinderDiameter = (maxX - minX) * 2
             textSize = (maxZ - minZ)
-
+            DlogUtil.d(TAG, "X로 맞춰야 할듯? $cylinderDiameter")
 
         } else {
-            DlogUtil.d(TAG, deviceWidth / deviceHeight.toDouble())
-            DlogUtil.d(TAG, (maxX - minX) / (maxY - minY))
-            DlogUtil.d(TAG, "Y로 맞춰야 할듯??")
+
             cylinderDiameter = (maxY - minY) * 2
             textSize = (maxX - minX)
+            DlogUtil.d(TAG, "Y로 맞춰야 할듯?? $cylinderDiameter")
+
         }
 
         var centerLength = MathUtil.calculationLength(
@@ -283,10 +254,7 @@ class RenderingViewHolder(context: Context, type: Int) {
 
         cameraClip = centerLength * 6
 
-        DlogUtil.d(TAG, "centerLength : $centerLength")
-
         cameraPosition =
-
             if (cameraZ <= 0) {
                 Vector3(
                     cameraX, cameraY,
@@ -318,7 +286,6 @@ class RenderingViewHolder(context: Context, type: Int) {
         sceneView.scene.addOnPeekTouchListener { hitTestResult, motionEvent ->
 
             try {
-
                 transformationSystem.onTouch(hitTestResult, motionEvent)
 
                 if (motionEvent.action == MotionEvent.ACTION_DOWN) {
@@ -356,7 +323,6 @@ class RenderingViewHolder(context: Context, type: Int) {
 
                             xAngle = percentX * 360 * 0.52f + lastXAngle
                             yAngle = percentY * 360 * 0.52f + lastYAngle
-
 
                             var xQuaternion = Quaternion.axisAngle(Vector3(0f, 1f, 0f), xAngle)
                             //자바의 삼각함수는 라디언만 먹음
@@ -654,6 +620,7 @@ class RenderingViewHolder(context: Context, type: Int) {
                 var newVector4 = Vector3(xzlist4[0].toFloat(), 0f, xzlist4[1].toFloat())
 
                 addLineBetweenPoints(newVector3, newVector4, Constant.gowoonwooriHexColorCode1)
+                setLengthLine(newVector3, newVector4, Constant.Direction.FLOOR)
 
             } else {
                 var slope = MathUtil.calculationSlopeNormalVector(vectorList[i], vectorList[i+1])
@@ -678,12 +645,10 @@ class RenderingViewHolder(context: Context, type: Int) {
                 var newVector4 = Vector3(xzlist4[0].toFloat(), 0f, xzlist4[1].toFloat())
 
                 addLineBetweenPoints(newVector3, newVector4, Constant.gowoonwooriHexColorCode1)
+                setLengthLine(newVector3, newVector4, Constant.Direction.FLOOR)
 
             }
-
         }
-
-
     }
 
     private fun addLineBetweenPoints(from: Vector3, to: Vector3, colorCode: String) {
@@ -790,7 +755,6 @@ class RenderingViewHolder(context: Context, type: Int) {
                 percentageDoorHeight = measure / maxLength * 0.2f
 
                 //Rendering
-
                 RenderingUtil.extendCylinderLineY(
                     view.context,
                     colorCode,
@@ -807,7 +771,6 @@ class RenderingViewHolder(context: Context, type: Int) {
                 DlogUtil.d(TAG, "percentageDoorWidth $percentageDoorWidth")
 
                 //Rendering
-
                 RenderingUtil.extendCylinderLineX(
                     view.context,
                     colorCode,
@@ -844,7 +807,6 @@ class RenderingViewHolder(context: Context, type: Int) {
             }
 
             //Rendering
-
             RenderingUtil.drawCylinderLine(
                 view.context,
                 colorCode,
@@ -854,7 +816,6 @@ class RenderingViewHolder(context: Context, type: Int) {
                 axisFrom,
                 axisTo
             )
-
 
         } else if (drawType == Constant.DrawType.TYPE_DOOR) {
 
@@ -896,34 +857,16 @@ class RenderingViewHolder(context: Context, type: Int) {
 
         var lengthText = (round(MathUtil.calculationLength(list) * 100) / 100).toString() + "m"
 
-        if (direction == Constant.Direction.Horizontal) {
-            //Rendering
-            RenderingUtil.drawTextView(
-                view.context,
-                centerPosition,
-                percentageHeight,
-                lengthText,
-                transformableNode,
-                from,
-                to,
-                Constant.Direction.Horizontal
-            )
-
-        } else if (direction == Constant.Direction.Vertical) {
-            //Rendering
-            RenderingUtil.drawTextView(
-                view.context,
-                centerPosition,
-                percentageHeight,
-                lengthText,
-                transformableNode,
-                from,
-                to,
-                Constant.Direction.Vertical
-            )
-
-        }
+        //Rendering
+        RenderingUtil.drawTextView(
+            view.context,
+            centerPosition,
+            percentageHeight,
+            lengthText,
+            transformableNode,
+            from,
+            to,
+            direction
+        )
     }
-
-
 }

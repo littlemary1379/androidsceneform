@@ -7,7 +7,7 @@ object Constant {
     const val gowoonwooriHexColorCode2 : String = "#ab88ff"
 
     enum class Direction {
-        Horizontal, Vertical
+        Horizontal, Vertical, FLOOR
     }
 
     enum class DrawType {

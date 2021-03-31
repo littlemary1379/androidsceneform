@@ -12,7 +12,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:screenOrientation="portrait">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -20,8 +22,7 @@
             </intent-filter>
         </activity>
 
-        <!-- "AR Optional" app, contains non-AR features that can be used when
-"Google Play Services for AR" (ARCore) is not available. -->
+        <!-- "AR Optional" app, contains non-AR features that can be used when "Google Play Services for AR" (ARCore) is not available. -->
         <meta-data
             android:name="com.google.ar.core"
             android:value="optional" />

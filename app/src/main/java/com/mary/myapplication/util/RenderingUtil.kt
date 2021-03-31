@@ -109,8 +109,8 @@ object RenderingUtil {
                 node.renderable = model
                 node.setParent(parentNode)
                 node.worldPosition =
-                    Vector3.add(to, MathUtil.addVector(from, to,20)).scaled(.5f);
-                DlogUtil.d(TAG, "extendCylinderLineX : ${MathUtil.addVector(from, to,20).x}")
+                    Vector3.add(to, MathUtil.addVector(from, to, 20)).scaled(.5f);
+                DlogUtil.d(TAG, "extendCylinderLineX : ${MathUtil.addVector(from, to, 20).x}")
 
                 //4. set rotation
                 val difference =
@@ -130,7 +130,7 @@ object RenderingUtil {
 
     fun drawTextView(
         context: Context,
-        centerPosition : Vector3,
+        centerPosition: Vector3,
         height: Float,
         text: String,
         parentNode: TransformableNode,
@@ -165,31 +165,66 @@ object RenderingUtil {
                 val difference = Vector3.subtract(to, from)
                 val directionFromTopToBottom = difference.normalized()
 
-                if (direction == Constant.Direction.Horizontal) {
+                when (direction) {
 
-                    val rotationFromAToB =
-                        Quaternion.lookRotation(
-                            directionFromTopToBottom,
-                            Vector3.up()
+                    Constant.Direction.Horizontal -> {
+
+                        val rotationFromAToB =
+                            Quaternion.lookRotation(
+                                directionFromTopToBottom,
+                                Vector3.up()
+                            )
+
+                        indicatorModel.worldRotation = Quaternion.multiply(
+                            rotationFromAToB,
+                            Quaternion.axisAngle(Vector3(0.0f, 1.0f, 0.0f), 90f)
                         )
 
-                    indicatorModel.worldRotation = Quaternion.multiply(
-                        rotationFromAToB,
-                        Quaternion.axisAngle(Vector3(0.0f, 1.0f, 0.0f), 90f)
-                    )
-                } else if(direction == Constant.Direction.Vertical) {
+                    }
 
-                    val rotationFromAToB =
-                        Quaternion.lookRotation(
-                            Vector3(0f, 0f, 0f),
-                            Vector3.up()
+                    Constant.Direction.Vertical -> {
+
+                        val rotationFromAToB =
+                            Quaternion.lookRotation(
+                                Vector3(0f, 0f, 0f),
+                                Vector3.up()
+                            )
+
+                        indicatorModel.worldRotation = Quaternion.multiply(
+                            rotationFromAToB,
+                            Quaternion.axisAngle(Vector3(0.0f, 0.0f, 1.0f), 270f)
                         )
 
-                    indicatorModel.worldRotation = Quaternion.multiply(
-                        rotationFromAToB,
-                        Quaternion.axisAngle(Vector3(
-                            0.0f, 0.0f, 1.0f), 270f)
-                    )
+                    }
+
+                    Constant.Direction.FLOOR -> {
+
+                        DlogUtil.d(TAG, to.z > from.z)
+
+                        val rotationFromAToB: Quaternion
+
+                        if (to.z > from.z) {
+
+                            rotationFromAToB =
+                                Quaternion.lookRotation(
+                                    directionFromTopToBottom,
+                                    Vector3.left()
+                                )
+                        } else {
+
+                            rotationFromAToB =
+                                Quaternion.lookRotation(
+                                    directionFromTopToBottom,
+                                    Vector3.right()
+                                )
+                        }
+
+                        indicatorModel.worldRotation = Quaternion.multiply(
+                            rotationFromAToB,
+                            Quaternion.axisAngle(Vector3(.0f, 1f, 0f), 90f)
+                        )
+
+                    }
                 }
             }
     }
