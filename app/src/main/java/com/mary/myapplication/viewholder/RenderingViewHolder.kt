@@ -38,13 +38,17 @@ class RenderingViewHolder(context: Context, type: Int) {
     private lateinit var parentsTransformableNode: TransformableNode
     private lateinit var transformableViewNode: TransformableNode
 
-    private var height = 0f
-    private var doorHeight = 0f
-    private var windowHeight = 0f
     private var maxLength = 0f
+
+    private var height = 0f
     private lateinit var floorVectorList: MutableList<Vector3>
     private lateinit var ceilingVectorList: MutableList<Vector3>
-    var vectorList: MutableList<Vector3> = mutableListOf()
+    private var vectorList: MutableList<Vector3> = mutableListOf()
+
+    private var doorHeight = 0f
+    private var windowHeight = 0f
+    private var windowVectorList: MutableList<Vector3> = mutableListOf()
+    private var doorVectorList: MutableList<Vector3> = mutableListOf()
 
     private lateinit var centerPosition: Vector3
     private lateinit var cameraPosition: Vector3
@@ -83,6 +87,8 @@ class RenderingViewHolder(context: Context, type: Int) {
         maxLength = LocationUtil.longLength(roomData.rawVectorList, height)
 
         initVectorList(roomData.rawVectorList)
+        initPartVectorList(roomData.rawWindowVectorList, windowVectorList)
+        initPartVectorList(roomData.rawDoorVectorList, doorVectorList)
 
         initCenterVector(vectorList)
         setCameraPosition(cameraPosition)
@@ -168,11 +174,27 @@ class RenderingViewHolder(context: Context, type: Int) {
         vectorList.addAll(ceilingVectorList)
     }
 
+    private fun initPartVectorList(
+        rawVectorList: List<Vector3>,
+        calculateVectorList: MutableList<Vector3>
+    ) {
+        for (i in rawVectorList.indices) {
+            calculateVectorList.add(
+                Vector3(
+                    rawVectorList[i].x / maxLength,
+                    rawVectorList[i].y / maxLength,
+                    rawVectorList[i].z / maxLength
+                )
+            )
+        }
+    }
 
     private fun initCenterVector(vectorList: List<Vector3>) {
+
         var cameraX = 0f
         var cameraY = 0f
         var cameraZ = 0f
+        var maxPosition = 0f
 
         var minZ = vectorList[0].z
         var maxZ = vectorList[0].z
@@ -209,51 +231,43 @@ class RenderingViewHolder(context: Context, type: Int) {
 
         centerPosition = Vector3(cameraX, cameraY, cameraZ)
 
-        var deviceSize = Point()
-        view.context.display?.getRealSize(deviceSize)
-        val deviceWidth = deviceSize.x
-        val deviceHeight = deviceSize.y
-
+        //가장 긴 길이를 기준으로 카메라 조절
         if ((maxX - minX) < (maxZ - minZ) && (maxY - minY) < (maxZ - minZ)) {
 
             cylinderDiameter = (maxZ - minZ) * 2
             textSize = (maxX - minX)
             DlogUtil.d(TAG, "z로 맞춰야 할듯? $cylinderDiameter")
+            maxPosition = maxZ - centerPosition.z
 
-        } else if (deviceWidth / deviceHeight.toDouble() < (maxX - minX) / (maxY - minY)) {
+
+        } else if ((maxX - minX) > (maxZ - minZ) && (maxY - minY) < (maxX - minX)) {
 
             cylinderDiameter = (maxX - minX) * 2
             textSize = (maxZ - minZ)
             DlogUtil.d(TAG, "X로 맞춰야 할듯? $cylinderDiameter")
+            maxPosition = maxX - centerPosition.x
 
         } else {
 
             cylinderDiameter = (maxY - minY) * 2
             textSize = (maxX - minX)
             DlogUtil.d(TAG, "Y로 맞춰야 할듯?? $cylinderDiameter")
+            maxPosition = maxY - centerPosition.y
 
         }
 
-        var centerLength = MathUtil.calculationLength(
-            listOf(
-                vectorList[2].x - centerPosition.x,
-                vectorList[2].y - centerPosition.y,
-                vectorList[2].z - centerPosition.z
-            )
-        )
-
-        cameraClip = centerLength * 6
+        cameraClip = maxPosition * 6
 
         cameraPosition =
             if (cameraZ <= 0) {
                 Vector3(
                     cameraX, cameraY,
-                    1.5f * centerLength
+                    1.5f * maxPosition
                 )
             } else {
                 Vector3(
                     cameraX, cameraY,
-                    cameraZ * 2 + 1.5f * centerLength
+                    cameraZ * maxPosition
                 )
             }
     }
@@ -377,8 +391,8 @@ class RenderingViewHolder(context: Context, type: Int) {
     private fun draw3Dpart() {
         //문, 창문 랜더링
         drawType = Constant.DrawType.TYPE_ROOM_PART
-        drawDoorAndWindow(roomData.rawDoorVectorList, doorHeight)
-        drawDoorAndWindow(roomData.rawWindowVectorList, windowHeight)
+        drawDoorAndWindow(doorVectorList, doorHeight)
+        drawDoorAndWindow(windowVectorList, windowHeight)
     }
 
     private fun drawFloor() {
@@ -394,35 +408,18 @@ class RenderingViewHolder(context: Context, type: Int) {
         drawType = Constant.DrawType.TYPE_FLOOR_PART
         //todo refactoring
         addLineBetweenPoints(
-            Vector3(
-                roomData.rawWindowVectorList[0].x / maxLength,
-                0f,
-                roomData.rawWindowVectorList[0].z / maxLength
-            ),
-            Vector3(
-                roomData.rawWindowVectorList[1].x / maxLength,
-                0f,
-                roomData.rawWindowVectorList[1].z / maxLength
-            ),
+            Vector3(windowVectorList[0].x, 0f, windowVectorList[0].z),
+            Vector3(windowVectorList[1].x, 0f, windowVectorList[1].z),
             Constant.gowoonwooriHexColorCode2
         )
 
         drawType = Constant.DrawType.TYPE_FLOOR_PART_MEASURE
         xzMeasureModeling(
             listOf(
-                Vector3(
-                    roomData.rawWindowVectorList[0].x / maxLength,
-                    0f,
-                    roomData.rawWindowVectorList[0].z / maxLength
-                ),
-                Vector3(
-                    roomData.rawWindowVectorList[1].x / maxLength,
-                    0f,
-                    roomData.rawWindowVectorList[1].z / maxLength
-                )
+                Vector3(windowVectorList[0].x, 0f, windowVectorList[0].z),
+                Vector3(windowVectorList[1].x, 0f, windowVectorList[1].z)
             )
         )
-
     }
 
     private fun drawModeling(vectorList: List<Vector3>) {
@@ -458,55 +455,37 @@ class RenderingViewHolder(context: Context, type: Int) {
         //todo refactoring
         //draw Door
         addLineBetweenPoints(
+            doorVectorList[0], doorVectorList[1], Constant.gowoonwooriHexColorCode2
+        )
+        addLineBetweenPoints(
             Vector3(
-                doorVectorList[0].x / maxLength,
-                doorVectorList[0].y / maxLength,
-                doorVectorList[0].z / maxLength
+                doorVectorList[0].x,
+                doorVectorList[0].y + doorHeight / maxLength,
+                doorVectorList[0].z
             ),
             Vector3(
-                doorVectorList[1].x / maxLength,
-                doorVectorList[1].y / maxLength,
-                doorVectorList[1].z / maxLength
+                doorVectorList[1].x,
+                doorVectorList[1].y + doorHeight / maxLength,
+                doorVectorList[1].z
             ),
             Constant.gowoonwooriHexColorCode2
         )
         addLineBetweenPoints(
+            doorVectorList[0],
             Vector3(
-                doorVectorList[0].x / maxLength,
-                (doorVectorList[0].y + doorHeight) / maxLength,
-                doorVectorList[0].z / maxLength
-            ),
-            Vector3(
-                doorVectorList[1].x / maxLength,
-                (doorVectorList[1].y + doorHeight) / maxLength,
-                doorVectorList[1].z / maxLength
-            ),
-            Constant.gowoonwooriHexColorCode2
-        )
-        addLineBetweenPoints(
-            Vector3(
-                doorVectorList[0].x / maxLength,
-                doorVectorList[0].y / maxLength,
-                doorVectorList[0].z / maxLength
-            ),
-            Vector3(
-                doorVectorList[0].x / maxLength,
-                (doorVectorList[0].y + doorHeight) / maxLength,
-                doorVectorList[0].z / maxLength
+                doorVectorList[0].x,
+                doorVectorList[0].y + doorHeight / maxLength,
+                doorVectorList[0].z
             ),
             Constant.gowoonwooriHexColorCode2
         )
 
         addLineBetweenPoints(
+            doorVectorList[1],
             Vector3(
-                doorVectorList[1].x / maxLength,
-                doorVectorList[1].y / maxLength,
-                doorVectorList[1].z / maxLength
-            ),
-            Vector3(
-                doorVectorList[1].x / maxLength,
-                (doorVectorList[1].y + doorHeight) / maxLength,
-                doorVectorList[1].z / maxLength
+                doorVectorList[1].x,
+                doorVectorList[1].y + doorHeight / maxLength,
+                doorVectorList[1].z
             ),
             Constant.gowoonwooriHexColorCode2
         )
@@ -514,103 +493,74 @@ class RenderingViewHolder(context: Context, type: Int) {
         //draw Size
         startLength(
             Vector3(
-                doorVectorList[0].x / maxLength,
-                (doorVectorList[0].y + doorHeight) / maxLength,
-                doorVectorList[0].z / maxLength
-            ),
-            Vector3(
-                doorVectorList[0].x / maxLength,
-                doorVectorList[0].y / maxLength,
-                doorVectorList[0].z / maxLength
-            ), doorHeight, Constant.Direction.Horizontal
+                doorVectorList[0].x,
+                doorVectorList[0].y + doorHeight / maxLength,
+                doorVectorList[0].z
+            ), doorVectorList[0], doorHeight, Constant.Direction.Horizontal
         )
 
         startLength(
             Vector3(
-                doorVectorList[1].x / maxLength,
-                (doorVectorList[1].y + doorHeight) / maxLength,
-                doorVectorList[1].z / maxLength
-            ), Vector3(
-                doorVectorList[1].x / maxLength,
-                doorVectorList[1].y / maxLength,
-                doorVectorList[1].z / maxLength
-            ), doorHeight, Constant.Direction.Horizontal
+                doorVectorList[1].x,
+                doorVectorList[1].y + doorHeight / maxLength,
+                doorVectorList[1].z
+            ), doorVectorList[1], doorHeight, Constant.Direction.Horizontal
         )
 
         startLength(
             Vector3(
-                doorVectorList[1].x / maxLength,
-                (doorVectorList[1].y + doorHeight) / maxLength,
-                doorVectorList[1].z / maxLength
+                doorVectorList[1].x,
+                doorVectorList[1].y + doorHeight / maxLength,
+                doorVectorList[1].z
             ),
-
             Vector3(
-                doorVectorList[0].x / maxLength,
-                (doorVectorList[0].y + doorHeight) / maxLength,
-                doorVectorList[0].z / maxLength
+                doorVectorList[0].x,
+                doorVectorList[0].y + doorHeight / maxLength,
+                doorVectorList[0].z
             ),
-
             MathUtil.calculationLength(
                 listOf(
-                    (doorVectorList[1].x - doorVectorList[0].x),
-                    (doorVectorList[1].y - doorVectorList[0].y)
+                    (doorVectorList[1].x - doorVectorList[0].x) * maxLength,
+                    (doorVectorList[1].z - doorVectorList[0].z) * maxLength
                 )
             ), Constant.Direction.Vertical
         )
 
         startLength(
-            Vector3(
-                doorVectorList[1].x / maxLength,
-                doorVectorList[1].y / maxLength,
-                doorVectorList[1].z / maxLength
-            ), Vector3(
-                doorVectorList[0].x / maxLength,
-                doorVectorList[0].y / maxLength,
-                doorVectorList[0].z / maxLength
-            ),
+            doorVectorList[1], doorVectorList[0],
             MathUtil.calculationLength(
                 listOf(
-                    (doorVectorList[1].x - doorVectorList[0].x),
-                    (doorVectorList[1].y - doorVectorList[0].y)
+                    (doorVectorList[1].x - doorVectorList[0].x) * maxLength,
+                    (doorVectorList[1].y - doorVectorList[0].y) * maxLength
                 )
             ), Constant.Direction.Vertical
         )
 
         drawLengthLine(
             Vector3(
-                doorVectorList[0].x / maxLength,
-                (doorVectorList[0].y + doorHeight) / maxLength,
-                doorVectorList[0].z / maxLength
+                doorVectorList[0].x,
+                doorVectorList[0].y + doorHeight / maxLength,
+                doorVectorList[0].z
             ), Vector3(
-                doorVectorList[1].x / maxLength,
-                (doorVectorList[1].y + doorHeight) / maxLength,
-                doorVectorList[1].z / maxLength
+                doorVectorList[1].x,
+                doorVectorList[1].y + doorHeight / maxLength,
+                doorVectorList[1].z
             ), Constant.Direction.Horizontal
         )
 
         drawLengthLine(
             MathUtil.addVector(
                 Vector3(
-                    doorVectorList[0].x / maxLength,
-                    (doorVectorList[0].y + doorHeight) / maxLength,
-                    doorVectorList[0].z / maxLength
+                    doorVectorList[0].x,
+                    doorVectorList[0].y + doorHeight / maxLength,
+                    doorVectorList[0].z
                 ), Vector3(
-                    doorVectorList[1].x / maxLength,
-                    (doorVectorList[1].y + doorHeight) / maxLength,
-                    doorVectorList[1].z / maxLength
+                    doorVectorList[1].x,
+                    doorVectorList[1].y + doorHeight / maxLength,
+                    doorVectorList[1].z
                 ), 10
             ),
-            MathUtil.addVector(
-                Vector3(
-                    doorVectorList[0].x / maxLength,
-                    doorVectorList[0].y / maxLength,
-                    doorVectorList[0].z / maxLength
-                ), Vector3(
-                    doorVectorList[1].x / maxLength,
-                    doorVectorList[1].y / maxLength,
-                    doorVectorList[1].z / maxLength
-                ), 10
-            ),
+            MathUtil.addVector(doorVectorList[0], doorVectorList[1], 10),
             Constant.Direction.Vertical
         )
     }
@@ -637,7 +587,7 @@ class RenderingViewHolder(context: Context, type: Int) {
 
     private fun xzMeasureModeling(vectorList: List<Vector3>) {
 
-        var length = when(drawType) {
+        var length = when (drawType) {
             Constant.DrawType.TYPE_FLOOR_MEASURE -> 0.15
             Constant.DrawType.TYPE_FLOOR_PART_MEASURE -> 0.5
             else -> 0.0
