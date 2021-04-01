@@ -39,6 +39,8 @@ class RenderingViewHolder(context: Context, type: Int) {
     private lateinit var transformableViewNode: TransformableNode
 
     private var height = 0f
+    private var doorHeight = 0f
+    private var windowHeight = 0f
     private var maxLength = 0f
     private lateinit var floorVectorList: MutableList<Vector3>
     private lateinit var ceilingVectorList: MutableList<Vector3>
@@ -75,15 +77,10 @@ class RenderingViewHolder(context: Context, type: Int) {
 
         findView()
         height = 20f
-        var doorHeight = 15f
-        var windowHeight = 10f
+        doorHeight = 15f
+        windowHeight = 10f
 
         maxLength = LocationUtil.longLength(roomData.rawVectorList, height)
-
-        DlogUtil.d(
-            TAG,
-            "가장 큰 길이 $maxLength"
-        )
 
         initVectorList(roomData.rawVectorList)
 
@@ -95,26 +92,19 @@ class RenderingViewHolder(context: Context, type: Int) {
         when (type) {
 
             TYPE_3D -> {
-                //모델 랜더링
-                drawModeling(floorVectorList)
-                drawPillar(floorVectorList)
-                drawModeling(ceilingVectorList)
-
-                //치수 랜더링
-                drawSizeModeling(ceilingVectorList)
-
-                //문, 창문 랜더링
-                drawDoorAndWindow(roomData.rawDoorVectorList, doorHeight)
-                drawDoorAndWindow(roomData.rawWindowVectorList, windowHeight)
+                draw3Droom()
+                draw3Dpart()
             }
 
             TYPE_FLOOR -> {
-                //바닥만 그리고, 그려진걸 쿼테이션 시켜서 뒤집을 것
-                isFloor = true
-                drawModeling(floorVectorList)
-                testModeling(floorVectorList)
 
-                //랜더링 시간 고려해서 스레드 처리
+                //핀치 줌 막는 변수
+                isFloor = true
+
+                drawFloor()
+                drawFloorPart()
+
+                //랜더링 시간 고려해서 쿼테이션 스레드 처리
                 Thread {
                     Thread.sleep(1000)
                     quaternionXAxis90Rendering()
@@ -122,6 +112,7 @@ class RenderingViewHolder(context: Context, type: Int) {
             }
 
             else -> {
+                drawType = Constant.DrawType.TYPE_ROOM
                 drawModeling(floorVectorList)
             }
         }
@@ -212,7 +203,6 @@ class RenderingViewHolder(context: Context, type: Int) {
                 maxY = vectorList[i].y
         }
 
-
         cameraX /= vectorList.size
         cameraY /= vectorList.size
         cameraZ /= vectorList.size
@@ -277,6 +267,7 @@ class RenderingViewHolder(context: Context, type: Int) {
     private fun initSceneView() {
 
         sceneView.renderer?.setClearColor(com.google.ar.sceneform.rendering.Color(Color.WHITE))
+
         transformationSystem =
             TransformationSystem(view.resources.displayMetrics, FootprintSelectionVisualizer())
 
@@ -372,10 +363,69 @@ class RenderingViewHolder(context: Context, type: Int) {
 
     }
 
+    private fun draw3Droom() {
+        //모델 랜더링
+        drawType = Constant.DrawType.TYPE_ROOM
+        drawModeling(floorVectorList)
+        drawPillar(floorVectorList)
+        drawModeling(ceilingVectorList)
+
+        //치수 랜더링
+        drawSizeModeling(ceilingVectorList)
+    }
+
+    private fun draw3Dpart() {
+        //문, 창문 랜더링
+        drawType = Constant.DrawType.TYPE_ROOM_PART
+        drawDoorAndWindow(roomData.rawDoorVectorList, doorHeight)
+        drawDoorAndWindow(roomData.rawWindowVectorList, windowHeight)
+    }
+
+    private fun drawFloor() {
+        //바닥만 그리고, 그려진걸 쿼테이션 시켜서 뒤집을 것
+        drawType = Constant.DrawType.TYPE_FLOOR
+        drawModeling(floorVectorList)
+        //바닥 치수 랜더링 매서드
+        drawType = Constant.DrawType.TYPE_FLOOR_MEASURE
+        xzMeasureModeling(floorVectorList)
+    }
+
+    private fun drawFloorPart() {
+        drawType = Constant.DrawType.TYPE_FLOOR_PART
+        //todo refactoring
+        addLineBetweenPoints(
+            Vector3(
+                roomData.rawWindowVectorList[0].x / maxLength,
+                0f,
+                roomData.rawWindowVectorList[0].z / maxLength
+            ),
+            Vector3(
+                roomData.rawWindowVectorList[1].x / maxLength,
+                0f,
+                roomData.rawWindowVectorList[1].z / maxLength
+            ),
+            Constant.gowoonwooriHexColorCode2
+        )
+
+        drawType = Constant.DrawType.TYPE_FLOOR_PART_MEASURE
+        xzMeasureModeling(
+            listOf(
+                Vector3(
+                    roomData.rawWindowVectorList[0].x / maxLength,
+                    0f,
+                    roomData.rawWindowVectorList[0].z / maxLength
+                ),
+                Vector3(
+                    roomData.rawWindowVectorList[1].x / maxLength,
+                    0f,
+                    roomData.rawWindowVectorList[1].z / maxLength
+                )
+            )
+        )
+
+    }
 
     private fun drawModeling(vectorList: List<Vector3>) {
-
-        drawType = Constant.DrawType.TYPE_ROOM
 
         for (i in vectorList.indices) {
 
@@ -405,9 +455,7 @@ class RenderingViewHolder(context: Context, type: Int) {
     }
 
     private fun drawDoorAndWindow(doorVectorList: List<Vector3>, doorHeight: Float) {
-
-        drawType = Constant.DrawType.TYPE_DOOR
-
+        //todo refactoring
         //draw Door
         addLineBetweenPoints(
             Vector3(
@@ -587,10 +635,14 @@ class RenderingViewHolder(context: Context, type: Int) {
         }
     }
 
-    private fun testModeling(vectorList: List<Vector3>) {
+    private fun xzMeasureModeling(vectorList: List<Vector3>) {
 
-        drawType = Constant.DrawType.TYPE_MEASURE
-        var length = 0.15
+        var length = when(drawType) {
+            Constant.DrawType.TYPE_FLOOR_MEASURE -> 0.15
+            Constant.DrawType.TYPE_FLOOR_PART_MEASURE -> 0.5
+            else -> 0.0
+        }
+
         var upper = 0
 
         var newVector1: Vector3
@@ -606,6 +658,11 @@ class RenderingViewHolder(context: Context, type: Int) {
                 i + 1
             }
 
+            //창문이나 문처럼 직선 하나로 랜더링이 완료되는 경우, i=1이 마지막이 되므로, 랜더링이 2회 일어나는 것을 방지하는 if문
+            if (vectorList.size == 2 && i == 1) {
+                return
+            }
+
             var slope = MathUtil.calculationSlopeNormalVector(vectorList[i], vectorList[next])
 
             //upper 1 :  감소추이 upper 0 : 평행 upper -1 : 증가추이
@@ -616,7 +673,6 @@ class RenderingViewHolder(context: Context, type: Int) {
                 newVector1 = Vector3(vectorList[i].x, 0f, (vectorList[i].z + length).toFloat())
                 newVector2 =
                     Vector3(vectorList[next].x, 0f, (vectorList[next].z + length).toFloat())
-
                 newVector3 = Vector3(vectorList[i].x, 0f, (vectorList[i].z + length / 2).toFloat())
                 newVector4 =
                     Vector3(vectorList[next].x, 0f, (vectorList[next].z + length / 2).toFloat())
@@ -679,39 +735,57 @@ class RenderingViewHolder(context: Context, type: Int) {
         // Prepare a color
         val colorCode = com.google.ar.sceneform.rendering.Color(Color.parseColor(colorCode))
 
-        if (drawType == Constant.DrawType.TYPE_ROOM) {
-            RenderingUtil.drawCylinderLine(
-                view.context,
-                colorCode,
-                0.0025f * cylinderDiameter,
-                lineLength,
-                transformableNode,
-                from,
-                to
-            )
+        when (drawType) {
+            Constant.DrawType.TYPE_ROOM, Constant.DrawType.TYPE_FLOOR -> {
+                RenderingUtil.drawCylinderLine(
+                    view.context,
+                    colorCode,
+                    0.0025f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
 
-        } else if (drawType == Constant.DrawType.TYPE_DOOR) {
+            }
+            Constant.DrawType.TYPE_ROOM_PART -> {
 
-            RenderingUtil.drawCylinderLine(
-                view.context,
-                colorCode,
-                0.0015f * cylinderDiameter,
-                lineLength,
-                transformableNode,
-                from,
-                to
-            )
-        } else if (drawType == Constant.DrawType.TYPE_MEASURE) {
+                RenderingUtil.drawCylinderLine(
+                    view.context,
+                    colorCode,
+                    0.0015f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
+            }
+            Constant.DrawType.TYPE_FLOOR_MEASURE, Constant.DrawType.TYPE_FLOOR_PART_MEASURE -> {
 
-            RenderingUtil.drawCylinderLine(
-                view.context,
-                colorCode,
-                0.0005f * cylinderDiameter,
-                lineLength,
-                transformableNode,
-                from,
-                to
-            )
+                RenderingUtil.drawCylinderLine(
+                    view.context,
+                    colorCode,
+                    0.0005f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
+            }
+
+            Constant.DrawType.TYPE_FLOOR_PART -> {
+                RenderingUtil.drawCylinderLine(
+                    view.context,
+                    colorCode,
+                    0.0040f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
+            }
+
+
         }
     }
 
@@ -761,7 +835,7 @@ class RenderingViewHolder(context: Context, type: Int) {
 
             }
 
-        } else if (drawType == Constant.DrawType.TYPE_DOOR) {
+        } else if (drawType == Constant.DrawType.TYPE_ROOM_PART) {
 
             // Prepare a color
             val colorCode = com.google.ar.sceneform.rendering.Color(Color.parseColor("#888888"))
@@ -834,7 +908,7 @@ class RenderingViewHolder(context: Context, type: Int) {
                 axisTo
             )
 
-        } else if (drawType == Constant.DrawType.TYPE_DOOR) {
+        } else if (drawType == Constant.DrawType.TYPE_ROOM_PART) {
 
             if (direction == Constant.Direction.Horizontal) {
                 axisFrom = Vector3(from.x, from.y + percentageDoorHeight * 0.5f, from.z)

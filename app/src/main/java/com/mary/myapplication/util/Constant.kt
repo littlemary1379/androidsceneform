@@ -11,7 +11,7 @@ object Constant {
     }
 
     enum class DrawType {
-        TYPE_ROOM, TYPE_DOOR, TYPE_MEASURE
+        TYPE_ROOM, TYPE_ROOM_PART, TYPE_FLOOR, TYPE_FLOOR_MEASURE, TYPE_FLOOR_PART, TYPE_FLOOR_PART_MEASURE
     }
 
 }

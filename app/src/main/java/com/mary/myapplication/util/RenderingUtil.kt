@@ -9,6 +9,7 @@ import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.*
 import com.google.ar.sceneform.ux.TransformableNode
 
+
 object RenderingUtil {
 
     private const val TAG = "RenderingUtil"
@@ -30,14 +31,20 @@ object RenderingUtil {
                     radius, length,
                     Vector3(0f, 0f, 0f), material
                 )
-                model.isShadowReceiver = false
-                model.isShadowCaster = true
+
+
+
+                val light = Light.builder(Light.Type.FOCUSED_SPOTLIGHT)
+                    .setShadowCastingEnabled(false)
+                    .setIntensity(0f)
+                    .build()
 
                 // 3. make node
                 val node = Node()
                 node.renderable = model
 
                 node.setParent(parentNode)
+                node.light = light
                 node.worldPosition = Vector3.add(to, from).scaled(.5f);
 
                 //4. set rotation
@@ -226,7 +233,7 @@ object RenderingUtil {
                             }
                             else -> {
                                 var rotationFromAToB = Quaternion.lookRotation(
-                                    Vector3(0f,0f,0f),
+                                    Vector3(0f, 0f, 0f),
                                     Vector3.zero()
                                 )
 
@@ -237,7 +244,6 @@ object RenderingUtil {
                             }
 
                         }
-
 
 
                     }
