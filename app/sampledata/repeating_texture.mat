@@ -1,0 +1,39 @@
+// Sample material for repeating a texture.
+//
+// the repeating factor is given as repeat_x,
+// repeat_y as a factor multipled by the UV
+// coordinate.
+material {
+    "name" : "RepeatingTexture",
+   parameters : [
+   {
+      type : sampler2d,
+      name : texture
+   },
+
+    {
+        type: float,
+        name:"repeat_x"
+    },
+    {
+            type: float,
+            name: "repeat_y"
+    }
+   ],
+   requires : [
+       "position",
+       "uv0"
+   ],
+
+}
+fragment {
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+
+        vec2 uv = getUV0();
+        uv.x = uv.x * materialParams.repeat_x;
+        uv.y = uv.y * materialParams.repeat_y;
+
+        material.baseColor = texture(materialParams_texture, uv).rgba;
+    }
+}

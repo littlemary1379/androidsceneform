@@ -1,18 +1,52 @@
 package com.mary.myapplication.util
 
+import android.R
 import android.content.Context
+import android.net.Uri
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.google.ar.sceneform.Node
+import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.*
+import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.TransformableNode
+import java.util.function.Consumer
 
 
 object RenderingUtil {
 
     private const val TAG = "RenderingUtil"
+
+    var repeatingMaterial: Material? = null
+
+    //
+    fun loadMaterial(context: Context) {
+        DlogUtil.d(TAG, "랜더링이 비엇나? ???????????????????????")
+
+        ModelRenderable.builder().setSource(
+            context,
+            RenderableSource.builder().setSource(
+                context,
+                Uri.parse("/main/assets/models/line.glb"),
+                RenderableSource.SourceType.GLB
+            ).setScale(0.75f)
+                .setRecenterMode(RenderableSource.RecenterMode.ROOT)
+                .build()
+        )
+            .build()
+            .thenAccept(Consumer { modelRenderable: ModelRenderable ->
+                DlogUtil.d(TAG, "랜더링이 비엇나? " + modelRenderable)
+                repeatingMaterial = modelRenderable.material
+            })
+            .exceptionally {
+                DlogUtil.d(TAG, "랜더링이 비엇나?")
+                return@exceptionally null
+            }
+
+    }
+
 
     fun drawCylinderLine(
         context: Context,
@@ -33,6 +67,58 @@ object RenderingUtil {
                 )
 
 
+                val light = Light.builder(Light.Type.FOCUSED_SPOTLIGHT)
+                    .setShadowCastingEnabled(false)
+                    .setIntensity(0f)
+                    .build()
+
+                // 3. make node
+                val node = Node()
+                node.renderable = model
+
+                node.setParent(parentNode)
+                node.light = light
+                node.worldPosition = Vector3.add(to, from).scaled(.5f);
+
+                //4. set rotation
+                val difference = Vector3.subtract(to, from)
+                val directionFromTopToBottom = difference.normalized()
+                val rotationFromAToB =
+                    Quaternion.lookRotation(
+                        directionFromTopToBottom,
+                        Vector3.up()
+                    )
+                node.worldRotation = Quaternion.multiply(
+                    rotationFromAToB,
+                    Quaternion.axisAngle(Vector3(1.0f, 0.0f, 0.0f), 90f)
+                )
+            }
+    }
+
+    fun drawDashCylinderLine(
+        context: Context,
+        lineColor: Color,
+        radius: Float,
+        length: Float,
+        parentNode: TransformableNode,
+        from: Vector3,
+        to: Vector3
+    ) {
+
+        val lengthCM: Float = length * 100
+
+        repeatingMaterial?.setFloat("repeat_x", lengthCM / 10);
+        repeatingMaterial?.setFloat("repeat_y", lengthCM / 10);
+
+
+        // 1. make a material by the color
+        MaterialFactory.makeOpaqueWithColor(context, lineColor)
+            .thenAccept { material: Material? ->
+                // 2. make a model by the material
+                val model = ShapeFactory.makeCylinder(
+                    radius, length,
+                    Vector3(0f, 0f, 0f), repeatingMaterial
+                )
 
                 val light = Light.builder(Light.Type.FOCUSED_SPOTLIGHT)
                     .setShadowCastingEnabled(false)

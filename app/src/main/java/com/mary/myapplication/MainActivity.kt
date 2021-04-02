@@ -13,6 +13,7 @@ import com.mary.myapplication.customView.CustomHorizontalScrollViewDisableTouch
 import com.mary.myapplication.util.DisplayUtil
 import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.PermissionCheckUtil
+import com.mary.myapplication.util.RenderingUtil
 import com.mary.myapplication.viewholder.RenderingViewHolder
 
 class MainActivity : AppCompatActivity() {
@@ -44,8 +45,10 @@ class MainActivity : AppCompatActivity() {
         permissionCheck()
         checkARcore()
 
+        RenderingUtil.loadMaterial(this)
         initSceneView()
         initScreenWidth()
+
 
     }
 

@@ -410,7 +410,7 @@ class RenderingViewHolder(context: Context, type: Int) {
         addLineBetweenPoints(
             Vector3(windowVectorList[0].x, 0f, windowVectorList[0].z),
             Vector3(windowVectorList[1].x, 0f, windowVectorList[1].z),
-            Constant.gowoonwooriHexColorCode2
+            Constant.serenityHexColorCode
         )
 
         drawType = Constant.DrawType.TYPE_FLOOR_PART_MEASURE
@@ -724,7 +724,7 @@ class RenderingViewHolder(context: Context, type: Int) {
             }
 
             Constant.DrawType.TYPE_FLOOR_PART -> {
-                RenderingUtil.drawCylinderLine(
+                RenderingUtil.drawDashCylinderLine(
                     view.context,
                     colorCode,
                     0.0040f * cylinderDiameter,
