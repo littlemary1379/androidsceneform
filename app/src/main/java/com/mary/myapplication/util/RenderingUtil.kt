@@ -1,17 +1,18 @@
 package com.mary.myapplication.util
 
-import android.R
 import android.content.Context
-import android.net.Uri
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.google.ar.sceneform.Node
-import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.*
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.TransformableNode
+import com.mary.myapplication.util.event.ESSArrow
+import com.mary.myapplication.util.event.EventCenter
+import java.util.concurrent.Callable
+import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
 
@@ -20,28 +21,64 @@ object RenderingUtil {
     private const val TAG = "RenderingUtil"
 
     var repeatingMaterial: Material? = null
+    private lateinit var texture: Texture
 
     //
     fun loadMaterial(context: Context) {
         DlogUtil.d(TAG, "랜더링이 비엇나? ???????????????????????")
 
-        ModelRenderable.builder().setSource(
-            context,
-            RenderableSource.builder().setSource(
-                context,
-                Uri.parse("/main/assets/models/line.glb"),
-                RenderableSource.SourceType.GLB
-            ).setScale(0.75f)
-                .setRecenterMode(RenderableSource.RecenterMode.ROOT)
-                .build()
-        )
+//        var GLTF_ASSET =
+//            "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/glTF/Duck.gltf";
+
+//        var GLTF_ASSET =
+//            "file:///android_asset/models/line.gltf"
+
+//        ModelRenderable.builder().setSource(
+//            context,
+//            RenderableSource.builder().setSource(
+//                context,
+//                Uri.parse("file:///android_asset/models/line.gltf"),
+//                RenderableSource.SourceType.GLTF2
+//            ).setScale(0.75f)
+//                .setRecenterMode(RenderableSource.RecenterMode.ROOT)
+//                .build()
+//        )
+//            .build()
+//            .thenAccept(Consumer { modelRenderable: ModelRenderable ->
+//                repeatingMaterial = modelRenderable.material
+//                DlogUtil.d(TAG, "랜더링이 비엇나? " + modelRenderable)
+//
+//            })
+//            .exceptionally {
+//                DlogUtil.d(TAG, "랜더링이 비엇나? except")
+//                return@exceptionally null
+//            }
+
+        val sampler = Texture.Sampler.builder()
+            .setMinFilter(Texture.Sampler.MinFilter.NEAREST_MIPMAP_NEAREST)
+            .setMagFilter(Texture.Sampler.MagFilter.LINEAR)
+            .setWrapModeR(Texture.Sampler.WrapMode.REPEAT)
+            .setWrapModeS(Texture.Sampler.WrapMode.REPEAT)
+            .setWrapModeT(Texture.Sampler.WrapMode.REPEAT)
+            .build()
+
+        Texture.builder().setSource { context.assets.open("textures/line_texture.png") }
+            .setSampler(sampler)
+            .build()
+            .thenAccept {
+                texture = it
+            }
+
+        ModelRenderable.builder()
+            .setSource(context, com.mary.myapplication.R.raw.material_holder)
             .build()
             .thenAccept(Consumer { modelRenderable: ModelRenderable ->
-                DlogUtil.d(TAG, "랜더링이 비엇나? " + modelRenderable)
                 repeatingMaterial = modelRenderable.material
-            })
-            .exceptionally {
-                DlogUtil.d(TAG, "랜더링이 비엇나?")
+                DlogUtil.d(TAG, "해치웠나? ㅇㅇ")
+                EventCenter.instance.sendEvent(ESSArrow.LOAD_MODELIING_FINISH, this, null)
+            }).exceptionally {
+                DlogUtil.d(TAG, "해치웠나? ㄴㄴ")
+
                 return@exceptionally null
             }
 
@@ -107,12 +144,15 @@ object RenderingUtil {
 
         val lengthCM: Float = length * 100
 
-        repeatingMaterial?.setFloat("repeat_x", lengthCM / 10);
-        repeatingMaterial?.setFloat("repeat_y", lengthCM / 10);
+        DlogUtil.d(TAG, "오잉또잉? ${repeatingMaterial} : $lengthCM")
 
+        val colorCode = com.google.ar.sceneform.rendering.Color(android.graphics.Color.parseColor("#FFFFFFFF"))
 
-        // 1. make a material by the color
-        MaterialFactory.makeOpaqueWithColor(context, lineColor)
+        repeatingMaterial?.setFloat("repeat_x", lengthCM / 10)
+        repeatingMaterial?.setFloat("repeat_y", lengthCM / 10)
+        repeatingMaterial?.setTexture("texture", texture)
+
+        MaterialFactory.makeTransparentWithTexture(context, texture)
             .thenAccept { material: Material? ->
                 // 2. make a model by the material
                 val model = ShapeFactory.makeCylinder(
@@ -120,17 +160,11 @@ object RenderingUtil {
                     Vector3(0f, 0f, 0f), repeatingMaterial
                 )
 
-                val light = Light.builder(Light.Type.FOCUSED_SPOTLIGHT)
-                    .setShadowCastingEnabled(false)
-                    .setIntensity(0f)
-                    .build()
-
                 // 3. make node
                 val node = Node()
                 node.renderable = model
 
                 node.setParent(parentNode)
-                node.light = light
                 node.worldPosition = Vector3.add(to, from).scaled(.5f);
 
                 //4. set rotation
@@ -146,7 +180,38 @@ object RenderingUtil {
                     Quaternion.axisAngle(Vector3(1.0f, 0.0f, 0.0f), 90f)
                 )
             }
+
+        //        var modelRenderable = ShapeFactory.makeCylinder(
+//            radius, length,
+//            Vector3(0f, length / 2, 0f), repeatingMaterial
+//        )
+//
+//        modelRenderable.isShadowReceiver = false;
+//        modelRenderable.isShadowCaster = false;
+//
+//        // 3. make node
+//        val node = Node()
+//        node.renderable = modelRenderable
+//
+//        node.setParent(parentNode)
+//        node.worldPosition = Vector3.add(to, from).scaled(.5f);
+//
+//        //4. set rotation
+//        val difference = Vector3.subtract(from, to)
+//        val directionFromTopToBottom = difference.normalized()
+//        val rotationFromAToB =
+//            Quaternion.lookRotation(
+//                directionFromTopToBottom,
+//                Vector3.up()
+//            )
+//        node.worldRotation = Quaternion.multiply(
+//            rotationFromAToB,
+//            Quaternion.axisAngle(Vector3(1.0f, 0.0f, 0.0f), 90f)
+//        )
     }
+
+
+
 
     fun extendCylinderLineY(
         context: Context,

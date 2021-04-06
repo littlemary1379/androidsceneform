@@ -58,12 +58,18 @@ dependencies {
 
     // ok http3
     implementation("com.squareup.okhttp3:okhttp:4.9.0")
+
+    //test
+    implementation 'com.google.ar.sceneform:animation:1.17.1'
+    implementation 'com.google.android.gms:play-services-plus:17.0.0'
+    implementation 'com.google.android.gms:play-services-base:17.6.0'
+    implementation 'com.google.android.gms:play-services-location:18.0.0'
+
 }
 
 apply plugin: 'com.google.ar.sceneform.plugin'
 
-//sceneform.asset('sampledata/untitled_geometry.gltf',
-//        'default',
-//        'sampledata/untitled_geometry.sfa',
-//        'src/main/assets/untitled_geometry')
-
+sceneform.asset('sampledata/line.gltf',
+        "sampledata/repeating_texture.mat",
+        'sampledata/line.sfa',
+        'src/main/res/raw/material_holder')

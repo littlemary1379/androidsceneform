@@ -1,0 +1,31 @@
+{
+  materials: [
+    {
+      name: 'None',
+      parameters: [
+        {
+          texture: 'file:///android_asset/texture/line_texture.png',
+        },
+        {
+          repeat_x: 0,
+        },
+        {
+          repeat_y: 0,
+        },
+      ],
+      source: 'sampledata/repeating_texture.mat',
+    },
+  ],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+    ],
+    collision: {},
+    file: 'sampledata/line.gltf',
+    name: 'line',
+    recenter: 'root',
+  },
+  version: '0.54:2',
+}

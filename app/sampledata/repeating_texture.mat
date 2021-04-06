@@ -12,11 +12,11 @@ material {
    },
 
     {
-        type: float,
+        type: "float",
         name:"repeat_x"
     },
     {
-            type: float,
+            type: "float",
             name: "repeat_y"
     }
    ],
@@ -35,5 +35,7 @@ fragment {
         uv.y = uv.y * materialParams.repeat_y;
 
         material.baseColor = texture(materialParams_texture, uv).rgba;
+
+
     }
 }

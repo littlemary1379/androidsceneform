@@ -15,6 +15,9 @@ import com.google.ar.sceneform.ux.TransformationSystem
 import com.mary.myapplication.R
 import com.mary.myapplication.temp.RoomData
 import com.mary.myapplication.util.*
+import com.mary.myapplication.util.event.ESSArrow
+import com.mary.myapplication.util.event.EventCenter
+import java.util.HashMap
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.round
@@ -30,6 +33,7 @@ class RenderingViewHolder(context: Context, type: Int) {
     }
 
     var view: View = LayoutInflater.from(context).inflate(R.layout.viewholder_rendering, null)
+    private var type = type
 
     private lateinit var sceneView: SceneView
 
@@ -79,6 +83,7 @@ class RenderingViewHolder(context: Context, type: Int) {
 
     init {
 
+        //initESS()
         findView()
         height = 20f
         doorHeight = 15f
@@ -110,16 +115,17 @@ class RenderingViewHolder(context: Context, type: Int) {
                 drawFloor()
                 drawFloorPart()
 
-                //랜더링 시간 고려해서 쿼테이션 스레드 처리
-                Thread {
-                    Thread.sleep(1000)
+                ThreadUtil.startUIThread(100, Runnable {
+                    DlogUtil.d(TAG, "이게 먼저야?")
                     quaternionXAxis90Rendering()
-                }.start()
+                })
+
             }
 
             else -> {
                 drawType = Constant.DrawType.TYPE_ROOM
                 drawModeling(floorVectorList)
+
             }
         }
 
@@ -724,6 +730,72 @@ class RenderingViewHolder(context: Context, type: Int) {
             }
 
             Constant.DrawType.TYPE_FLOOR_PART -> {
+                DlogUtil.d(TAG, "???????????????????????")
+                RenderingUtil.drawDashCylinderLine(
+                    view.context,
+                    colorCode,
+                    0.0030f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
+            }
+
+        }
+    }
+
+    private fun addDashLineBetweenPoints(from: Vector3, to: Vector3, colorCode: String) {
+        // Node that is automatically positioned in world space based on the ARCore Anchor.
+        transformableNode = TransformableNode(transformationSystem)
+        transformableNode.setParent(parentsTransformableNode)
+
+        // Compute a line's length
+        val lineLength = Vector3.subtract(from, to).length()
+
+        // Prepare a color
+        val colorCode = com.google.ar.sceneform.rendering.Color(Color.parseColor(colorCode))
+
+        when (drawType) {
+            Constant.DrawType.TYPE_ROOM, Constant.DrawType.TYPE_FLOOR -> {
+                RenderingUtil.drawCylinderLine(
+                    view.context,
+                    colorCode,
+                    0.0025f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
+
+            }
+            Constant.DrawType.TYPE_ROOM_PART -> {
+
+                RenderingUtil.drawCylinderLine(
+                    view.context,
+                    colorCode,
+                    0.0015f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
+            }
+            Constant.DrawType.TYPE_FLOOR_MEASURE, Constant.DrawType.TYPE_FLOOR_PART_MEASURE -> {
+
+                RenderingUtil.drawCylinderLine(
+                    view.context,
+                    colorCode,
+                    0.0005f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
+            }
+
+            Constant.DrawType.TYPE_FLOOR_PART -> {
+                DlogUtil.d(TAG, "???????????????????????")
                 RenderingUtil.drawDashCylinderLine(
                     view.context,
                     colorCode,
@@ -734,7 +806,6 @@ class RenderingViewHolder(context: Context, type: Int) {
                     to
                 )
             }
-
 
         }
     }
