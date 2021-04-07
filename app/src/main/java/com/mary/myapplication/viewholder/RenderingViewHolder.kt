@@ -2,7 +2,6 @@ package com.mary.myapplication.viewholder
 
 import android.content.Context
 import android.graphics.Color
-import android.graphics.Point
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -15,9 +14,6 @@ import com.google.ar.sceneform.ux.TransformationSystem
 import com.mary.myapplication.R
 import com.mary.myapplication.temp.RoomData
 import com.mary.myapplication.util.*
-import com.mary.myapplication.util.event.ESSArrow
-import com.mary.myapplication.util.event.EventCenter
-import java.util.HashMap
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.round
@@ -115,7 +111,7 @@ class RenderingViewHolder(context: Context, type: Int) {
                 drawFloor()
                 drawFloorPart()
 
-                ThreadUtil.startUIThread(100, Runnable {
+                ThreadUtil.startUIThread(300, Runnable {
                     DlogUtil.d(TAG, "이게 먼저야?")
                     quaternionXAxis90Rendering()
                 })
@@ -411,19 +407,60 @@ class RenderingViewHolder(context: Context, type: Int) {
     }
 
     private fun drawFloorPart() {
-        drawType = Constant.DrawType.TYPE_FLOOR_PART
+        drawType = Constant.DrawType.TYPE_FLOOR_DOOR
+        //todo refactoring
+        addLineBetweenPoints(
+            Vector3(doorVectorList[0].x, 0f, doorVectorList[0].z),
+            Vector3(doorVectorList[1].x, 0f, doorVectorList[1].z),
+            Constant.serenityHexColorCode
+        )
+
+        drawType = Constant.DrawType.TYPE_FLOOR_WINDOW
         //todo refactoring
         addLineBetweenPoints(
             Vector3(windowVectorList[0].x, 0f, windowVectorList[0].z),
             Vector3(windowVectorList[1].x, 0f, windowVectorList[1].z),
-            Constant.serenityHexColorCode
+            Constant.serenityHexColorCodeTransparent50
+        )
+
+        addLineBetweenPoints(
+            Vector3(windowVectorList[2].x, 0f, windowVectorList[2].z),
+            Vector3(windowVectorList[3].x, 0f, windowVectorList[3].z),
+            Constant.serenityHexColorCodeTransparent50
+        )
+
+        addLineBetweenPoints(
+            Vector3(windowVectorList[4].x, 0f, windowVectorList[4].z),
+            Vector3(windowVectorList[5].x, 0f, windowVectorList[5].z),
+            Constant.serenityHexColorCodeTransparent50
         )
 
         drawType = Constant.DrawType.TYPE_FLOOR_PART_MEASURE
         xzMeasureModeling(
             listOf(
+                Vector3(doorVectorList[0].x, 0f, doorVectorList[0].z),
+                Vector3(doorVectorList[1].x, 0f, doorVectorList[1].z)
+            )
+        )
+
+        xzMeasureModeling(
+            listOf(
                 Vector3(windowVectorList[0].x, 0f, windowVectorList[0].z),
                 Vector3(windowVectorList[1].x, 0f, windowVectorList[1].z)
+            )
+        )
+
+        xzMeasureModeling(
+            listOf(
+                Vector3(windowVectorList[2].x, 0f, windowVectorList[2].z),
+                Vector3(windowVectorList[3].x, 0f, windowVectorList[3].z)
+            )
+        )
+
+        xzMeasureModeling(
+            listOf(
+                Vector3(windowVectorList[4].x, 0f, windowVectorList[4].z),
+                Vector3(windowVectorList[5].x, 0f, windowVectorList[5].z)
             )
         )
     }
@@ -729,8 +766,20 @@ class RenderingViewHolder(context: Context, type: Int) {
                 )
             }
 
-            Constant.DrawType.TYPE_FLOOR_PART -> {
+            Constant.DrawType.TYPE_FLOOR_WINDOW -> {
                 DlogUtil.d(TAG, "???????????????????????")
+                RenderingUtil.drawTransparentCylinderLine(
+                    view.context,
+                    colorCode,
+                    0.0040f * cylinderDiameter,
+                    lineLength,
+                    transformableNode,
+                    from,
+                    to
+                )
+            }
+
+            Constant.DrawType.TYPE_FLOOR_DOOR -> {
                 RenderingUtil.drawDashCylinderLine(
                     view.context,
                     colorCode,
@@ -794,7 +843,7 @@ class RenderingViewHolder(context: Context, type: Int) {
                 )
             }
 
-            Constant.DrawType.TYPE_FLOOR_PART -> {
+            Constant.DrawType.TYPE_FLOOR_DOOR -> {
                 DlogUtil.d(TAG, "???????????????????????")
                 RenderingUtil.drawDashCylinderLine(
                     view.context,

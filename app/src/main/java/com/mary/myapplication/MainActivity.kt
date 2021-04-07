@@ -12,7 +12,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
         RenderingUtil.loadMaterial(this)
 
         var textView : TextView = findViewById(R.id.textViewTest)

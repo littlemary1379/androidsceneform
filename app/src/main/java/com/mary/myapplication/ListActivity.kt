@@ -39,7 +39,6 @@ class ListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_list)
 
         findView()
-        //initESS()
         setListener()
 
         permissionCheck()
@@ -47,7 +46,6 @@ class ListActivity : AppCompatActivity() {
 
         initSceneView()
         initScreenWidth()
-
 
     }
 

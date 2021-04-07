@@ -156,6 +156,53 @@ object RenderingUtil {
 
     }
 
+    fun drawTransparentCylinderLine(
+        context: Context,
+        lineColor: Color,
+        radius: Float,
+        length: Float,
+        parentNode: TransformableNode,
+        from: Vector3,
+        to: Vector3
+    ) {
+        // 1. make a material by the color
+        MaterialFactory.makeTransparentWithColor(context, lineColor)
+            .thenAccept { material: Material? ->
+                // 2. make a model by the material
+                val model = ShapeFactory.makeCylinder(
+                    radius, length,
+                    Vector3(0f, 0f, 0f), material
+                )
+
+
+                val light = Light.builder(Light.Type.FOCUSED_SPOTLIGHT)
+                    .setShadowCastingEnabled(false)
+                    .setIntensity(0f)
+                    .build()
+
+                // 3. make node
+                val node = Node()
+                node.renderable = model
+
+                node.setParent(parentNode)
+                node.light = light
+                node.worldPosition = Vector3.add(to, from).scaled(.5f);
+
+                //4. set rotation
+                val difference = Vector3.subtract(to, from)
+                val directionFromTopToBottom = difference.normalized()
+                val rotationFromAToB =
+                    Quaternion.lookRotation(
+                        directionFromTopToBottom,
+                        Vector3.up()
+                    )
+                node.worldRotation = Quaternion.multiply(
+                    rotationFromAToB,
+                    Quaternion.axisAngle(Vector3(1.0f, 0.0f, 0.0f), 90f)
+                )
+            }
+    }
+
     fun extendCylinderLineY(
         context: Context,
         lineColor: Color,

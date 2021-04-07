@@ -33,6 +33,10 @@ class RoomData {
 
     var rawFirstWindowVector = Vector3(24f, 5f, -32f)
     var rawSecondWindowVector = Vector3(21f, 5f, -38f)
-    var rawWindowVectorList = listOf(rawFirstWindowVector, rawSecondWindowVector)
+    var rawThirdWindowVector = Vector3(23f, 5f, -34f)
+    var rawFourthWindowVector = Vector3(20f, 5f, -40f)
+    var rawFifthWindowVector = Vector3(12f, 0f, 0f)
+    var rawSixthWindowVector = Vector3(19f, 0f, 0f)
+    var rawWindowVectorList = listOf(rawFirstWindowVector, rawSecondWindowVector, rawThirdWindowVector, rawFourthWindowVector, rawFifthWindowVector, rawSixthWindowVector)
 
 }
