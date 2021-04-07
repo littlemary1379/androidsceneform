@@ -4,7 +4,7 @@
       name: 'None',
       parameters: [
         {
-          texture: 'file:///android_asset/texture/line_texture.png',
+          texture: 'texture/line_texture.png',
         },
         {
           repeat_x: 0,
@@ -27,5 +27,7 @@
     name: 'line',
     recenter: 'root',
   },
+
+
   version: '0.54:2',
 }

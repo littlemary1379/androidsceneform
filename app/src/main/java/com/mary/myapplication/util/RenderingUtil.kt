@@ -23,36 +23,8 @@ object RenderingUtil {
     var repeatingMaterial: Material? = null
     private lateinit var texture: Texture
 
-    //
     fun loadMaterial(context: Context) {
         DlogUtil.d(TAG, "랜더링이 비엇나? ???????????????????????")
-
-//        var GLTF_ASSET =
-//            "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/glTF/Duck.gltf";
-
-//        var GLTF_ASSET =
-//            "file:///android_asset/models/line.gltf"
-
-//        ModelRenderable.builder().setSource(
-//            context,
-//            RenderableSource.builder().setSource(
-//                context,
-//                Uri.parse("file:///android_asset/models/line.gltf"),
-//                RenderableSource.SourceType.GLTF2
-//            ).setScale(0.75f)
-//                .setRecenterMode(RenderableSource.RecenterMode.ROOT)
-//                .build()
-//        )
-//            .build()
-//            .thenAccept(Consumer { modelRenderable: ModelRenderable ->
-//                repeatingMaterial = modelRenderable.material
-//                DlogUtil.d(TAG, "랜더링이 비엇나? " + modelRenderable)
-//
-//            })
-//            .exceptionally {
-//                DlogUtil.d(TAG, "랜더링이 비엇나? except")
-//                return@exceptionally null
-//            }
 
         val sampler = Texture.Sampler.builder()
             .setMinFilter(Texture.Sampler.MinFilter.NEAREST_MIPMAP_NEAREST)
@@ -144,15 +116,16 @@ object RenderingUtil {
 
         val lengthCM: Float = length * 100
 
-        DlogUtil.d(TAG, "오잉또잉? ${repeatingMaterial} : $lengthCM")
+        DlogUtil.d(TAG, "오잉또잉? ${texture} : $lengthCM")
 
-        val colorCode = com.google.ar.sceneform.rendering.Color(android.graphics.Color.parseColor("#FFFFFFFF"))
+        val colorCode = com.google.ar.sceneform.rendering.Color(android.graphics.Color.parseColor("#DDFFFFFF"))
 
         repeatingMaterial?.setFloat("repeat_x", lengthCM / 10)
         repeatingMaterial?.setFloat("repeat_y", lengthCM / 10)
         repeatingMaterial?.setTexture("texture", texture)
+        repeatingMaterial?.setFloat ( "alphaFactor", .5f);
 
-        MaterialFactory.makeTransparentWithTexture(context, texture)
+        MaterialFactory.makeTransparentWithColor(context, colorCode)
             .thenAccept { material: Material? ->
                 // 2. make a model by the material
                 val model = ShapeFactory.makeCylinder(
@@ -181,37 +154,7 @@ object RenderingUtil {
                 )
             }
 
-        //        var modelRenderable = ShapeFactory.makeCylinder(
-//            radius, length,
-//            Vector3(0f, length / 2, 0f), repeatingMaterial
-//        )
-//
-//        modelRenderable.isShadowReceiver = false;
-//        modelRenderable.isShadowCaster = false;
-//
-//        // 3. make node
-//        val node = Node()
-//        node.renderable = modelRenderable
-//
-//        node.setParent(parentNode)
-//        node.worldPosition = Vector3.add(to, from).scaled(.5f);
-//
-//        //4. set rotation
-//        val difference = Vector3.subtract(from, to)
-//        val directionFromTopToBottom = difference.normalized()
-//        val rotationFromAToB =
-//            Quaternion.lookRotation(
-//                directionFromTopToBottom,
-//                Vector3.up()
-//            )
-//        node.worldRotation = Quaternion.multiply(
-//            rotationFromAToB,
-//            Quaternion.axisAngle(Vector3(1.0f, 0.0f, 0.0f), 90f)
-//        )
     }
-
-
-
 
     fun extendCylinderLineY(
         context: Context,

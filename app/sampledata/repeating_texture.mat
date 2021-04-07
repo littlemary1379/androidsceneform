@@ -5,11 +5,17 @@
 // coordinate.
 material {
     "name" : "RepeatingTexture",
+    blending : transparent,
    parameters : [
    {
       type : sampler2d,
       name : texture
    },
+
+       {
+           type: "float",
+           name:"alphaFactor"
+       },
 
     {
         type: "float",
@@ -34,7 +40,7 @@ fragment {
         uv.x = uv.x * materialParams.repeat_x;
         uv.y = uv.y * materialParams.repeat_y;
 
-        material.baseColor = texture(materialParams_texture, uv).rgba;
+        material.baseColor.rgba = texture(materialParams_texture, uv).rgba;
 
 
     }
