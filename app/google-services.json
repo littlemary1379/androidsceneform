@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1054205797995",
+    "project_id": "instrumentwithjavascript",
+    "storage_bucket": "instrumentwithjavascript.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1054205797995:android:ecfa0e0a6e3ceb0214732e",
+        "android_client_info": {
+          "package_name": "com.mary.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1054205797995-10uf6vdqsd89t25q2c02pc7echdrqn0k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mary.myapplication",
+            "certificate_hash": "3bb215588d95b21902e9b68d23e4f67b5dc9412d"
+          }
+        },
+        {
+          "client_id": "1054205797995-05h5svuddmht06uklvdra6mdagj67aji.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-HPMyJyipNpJlPlPLkWuJTxve88PJAq4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1054205797995-05h5svuddmht06uklvdra6mdagj67aji.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
