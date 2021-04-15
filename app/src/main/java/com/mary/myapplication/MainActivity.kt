@@ -5,6 +5,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.mary.myapplication.bean.TempRoomBean
 import com.mary.myapplication.util.ActivityUtil
 import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.RenderingUtil
@@ -36,7 +37,14 @@ class MainActivity : AppCompatActivity() {
     private fun connectDB() {
         val db = FirebaseFirestore.getInstance()
         db.collection("/data").document("two").get().addOnCompleteListener {
-            DlogUtil.d(TAG, "성공")
+            if(it.isSuccessful) {
+                val data = it.result
+                DlogUtil.d(TAG, "성공 ${data.data}")
+                val castingData = it.result.toObject(TempRoomBean::class.java)
+                DlogUtil.d(TAG, "캐스팅 성공 ${castingData?.startvector1}")
+            } else {
+                DlogUtil.d(TAG, "실패")
+            }
         }.addOnFailureListener {
             DlogUtil.d(TAG, "실패 $it")
         }
