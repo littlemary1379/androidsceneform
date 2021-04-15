@@ -40,8 +40,11 @@ class MainActivity : AppCompatActivity() {
             if(it.isSuccessful) {
                 val data = it.result
                 DlogUtil.d(TAG, "성공 ${data.data}")
-                val castingData = it.result.toObject(TempRoomBean::class.java)
-                DlogUtil.d(TAG, "캐스팅 성공 ${castingData?.startvector1}")
+                var tempRoomBean = TempRoomBean()
+                tempRoomBean = it.result.toObject(TempRoomBean::class.java)!!
+                DlogUtil.d(TAG, "캐스팅 성공 ${tempRoomBean?.startvector1}")
+                tempRoomBean.init()
+                DlogUtil.d(TAG, "벡터화 성공 ${tempRoomBean?.startRawVector1}")
             } else {
                 DlogUtil.d(TAG, "실패")
             }

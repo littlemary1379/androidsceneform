@@ -393,8 +393,17 @@ class RenderingViewHolder(context: Context, type: Int) {
     private fun draw3Dpart() {
         //문, 창문 랜더링
         drawType = Constant.DrawType.TYPE_ROOM_PART
-        drawDoorAndWindow(doorVectorList, doorHeight)
-        drawDoorAndWindow(windowVectorList, windowHeight)
+        if(doorVectorList == null && windowVectorList == null) {
+            return
+        } else if(doorVectorList==null) {
+            drawDoorAndWindow(windowVectorList, windowHeight)
+            return
+        } else if(windowVectorList == null) {
+            drawDoorAndWindow(doorVectorList, doorHeight)
+        } else {
+            drawDoorAndWindow(doorVectorList, doorHeight)
+            drawDoorAndWindow(windowVectorList, windowHeight)
+        }
     }
 
     private fun drawFloor() {
