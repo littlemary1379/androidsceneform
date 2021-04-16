@@ -1,11 +1,15 @@
 package com.mary.myapplication.util
 
+import com.google.ar.sceneform.math.Vector3
+
 object Constant {
     const val pinkHexColorCode : String = "#FFC3CE"
     const val serenityHexColorCode : String = "#b0cddf"
     const val serenityHexColorCodeTransparent50 : String = "#80b0cddf"
     const val gowoonwooriHexColorCode1 : String = "#6444b1"
     const val gowoonwooriHexColorCode2 : String = "#ab88ff"
+
+    var vectorList : MutableList<List<Vector3>>? = mutableListOf()
 
     enum class Direction {
         Horizontal, Vertical, FLOOR

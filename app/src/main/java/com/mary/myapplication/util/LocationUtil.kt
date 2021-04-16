@@ -83,4 +83,33 @@ object LocationUtil {
 
     }
 
+    //바닥을 이루는 면 중 가장 긴 면을 구해야한다.
+    @JvmName("longLength1")
+    fun longLength(locationList: List<List<Vector3>>, height: Float) : Float {
+        var maxLength = 0f
+        var length1: Float
+
+        for (i in locationList.indices) {
+
+            val list = listOf(
+                locationList[i][0].x- locationList[i][1].x,
+                locationList[i][0].y- locationList[i][1].y,
+                locationList[i][0].z- locationList[i][1].z
+            )
+
+            length1= MathUtil.calculationLength(list)
+
+            if (maxLength < length1) {
+                maxLength = length1
+            }
+
+        }
+
+        if(maxLength < height) {
+            maxLength = height
+        }
+
+        return maxLength
+    }
+
 }

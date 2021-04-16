@@ -45,6 +45,10 @@ class RenderingViewHolder(context: Context, type: Int) {
     private lateinit var ceilingVectorList: MutableList<Vector3>
     private var vectorList: MutableList<Vector3> = mutableListOf()
 
+    private lateinit var floorVectorList1: MutableList<List<Vector3>>
+    private lateinit var ceilingVectorList1: MutableList<List<Vector3>>
+    private var vectorList1: MutableList<List<Vector3>> = mutableListOf()
+
     private var doorHeight = 0f
     private var windowHeight = 0f
     private var windowVectorList: MutableList<Vector3> = mutableListOf()
@@ -81,17 +85,15 @@ class RenderingViewHolder(context: Context, type: Int) {
 
         //initESS()
         findView()
-        height = 20f
+        height = 300f
         doorHeight = 15f
         windowHeight = 10f
 
-        maxLength = LocationUtil.longLength(roomData.rawVectorList, height)
+        maxLength = LocationUtil.longLength(Constant.vectorList!!, height)
 
-        initVectorList(roomData.rawVectorList)
-        initPartVectorList(roomData.rawWindowVectorList, windowVectorList)
-        initPartVectorList(roomData.rawDoorVectorList, doorVectorList)
+        initVectorList(Constant.vectorList!!)
 
-        initCenterVector(vectorList)
+        initCenterVector(vectorList1)
         setCameraPosition(cameraPosition)
 
         initSceneView()
@@ -100,7 +102,7 @@ class RenderingViewHolder(context: Context, type: Int) {
 
             TYPE_3D -> {
                 draw3Droom()
-                draw3Dpart()
+                //draw3Dpart()
             }
 
             TYPE_FLOOR -> {
@@ -109,7 +111,7 @@ class RenderingViewHolder(context: Context, type: Int) {
                 isFloor = true
 
                 drawFloor()
-                drawFloorPart()
+                //drawFloorPart()
 
                 ThreadUtil.startUIThread(300, Runnable {
                     DlogUtil.d(TAG, "이게 먼저야?")
@@ -120,7 +122,7 @@ class RenderingViewHolder(context: Context, type: Int) {
 
             else -> {
                 drawType = Constant.DrawType.TYPE_ROOM
-                drawModeling(floorVectorList)
+                drawModeling(floorVectorList1)
 
             }
         }
@@ -150,30 +152,28 @@ class RenderingViewHolder(context: Context, type: Int) {
         sceneView.resume()
     }
 
-    private fun initVectorList(rawVectorList: List<Vector3>) {
+    private fun initVectorList(rawVectorList: List<List<Vector3>>) {
 
-        floorVectorList = mutableListOf()
-        ceilingVectorList = mutableListOf()
+        floorVectorList1 = mutableListOf()
+        ceilingVectorList1 = mutableListOf()
 
         for (i in rawVectorList.indices) {
-            ceilingVectorList.add(
-                Vector3(
-                    rawVectorList[i].x / maxLength,
-                    height / maxLength,
-                    rawVectorList[i].z / maxLength
-                )
+            var cellingPointList = listOf(
+                Vector3(rawVectorList[i][0].x / maxLength, height/maxLength, rawVectorList[i][0].z / maxLength),
+                Vector3(rawVectorList[i][1].x / maxLength, height/maxLength, rawVectorList[i][1].z / maxLength)
             )
-            floorVectorList.add(
-                Vector3(
-                    rawVectorList[i].x / maxLength,
-                    0f,
-                    rawVectorList[i].z / maxLength
-                )
+
+            var floorPointList = listOf(
+                Vector3(rawVectorList[i][0].x / maxLength, 0f, rawVectorList[i][0].z / maxLength),
+                Vector3(rawVectorList[i][1].x / maxLength, 0f, rawVectorList[i][1].z / maxLength)
             )
+            floorVectorList1.add(floorPointList)
+            ceilingVectorList1.add(cellingPointList)
         }
 
-        vectorList.addAll(floorVectorList)
-        vectorList.addAll(ceilingVectorList)
+        vectorList1.addAll(floorVectorList1)
+        vectorList1.addAll(ceilingVectorList1)
+
     }
 
     private fun initPartVectorList(
@@ -191,45 +191,66 @@ class RenderingViewHolder(context: Context, type: Int) {
         }
     }
 
-    private fun initCenterVector(vectorList: List<Vector3>) {
+    private fun initCenterVector(vectorList: List<List<Vector3>>) {
 
         var cameraX = 0f
         var cameraY = 0f
         var cameraZ = 0f
         var maxPosition = 0f
 
-        var minZ = vectorList[0].z
-        var maxZ = vectorList[0].z
-        var minX = vectorList[0].x
-        var maxX = vectorList[0].x
-        var minY = vectorList[0].y
-        var maxY = vectorList[0].y
+        var minZ = vectorList[0][0].z
+        var maxZ = vectorList[0][0].z
+        var minX = vectorList[0][0].x
+        var maxX = vectorList[0][0].x
+        var minY = vectorList[0][0].y
+        var maxY = vectorList[0][0].y
 
         for (i in vectorList.indices) {
-            cameraX += vectorList[i].x
-            cameraY += vectorList[i].y
-            cameraZ += vectorList[i].z
 
-            if (maxZ < vectorList[i].z)
-                maxZ = vectorList[i].z
-            else if (minZ > vectorList[i].z) {
-                minZ = vectorList[i].z
+            cameraX += vectorList[i][0].x
+            cameraY += vectorList[i][0].y
+            cameraZ += vectorList[i][0].z
+
+            if (maxZ < vectorList[i][0].z)
+                maxZ = vectorList[i][0].z
+            else if (minZ > vectorList[i][0].z) {
+                minZ = vectorList[i][0].z
             }
 
-            if (minX > vectorList[i].x)
-                minX = vectorList[i].x
-            else if (maxX < vectorList[i].x)
-                maxX = vectorList[i].x
+            if (minX > vectorList[i][0].x)
+                minX = vectorList[i][0].x
+            else if (maxX < vectorList[i][0].x)
+                maxX = vectorList[i][0].x
 
-            if (minY > vectorList[i].y)
-                minY = vectorList[i].y
-            else if (maxY < vectorList[i].y)
-                maxY = vectorList[i].y
+            if (minY > vectorList[i][0].y)
+                minY = vectorList[i][0].y
+            else if (maxY < vectorList[i][0].y)
+                maxY = vectorList[i][0].y
+
+            cameraX += vectorList[i][1].x
+            cameraY += vectorList[i][1].y
+            cameraZ += vectorList[i][1].z
+
+            if (maxZ < vectorList[i][1].z)
+                maxZ = vectorList[i][1].z
+            else if (minZ > vectorList[i][1].z) {
+                minZ = vectorList[i][1].z
+            }
+
+            if (minX > vectorList[i][1].x)
+                minX = vectorList[i][1].x
+            else if (maxX < vectorList[i][1].x)
+                maxX = vectorList[i][1].x
+
+            if (minY > vectorList[i][1].y)
+                minY = vectorList[i][1].y
+            else if (maxY < vectorList[i][1].y)
+                maxY = vectorList[i][1].y
         }
 
-        cameraX /= vectorList.size
-        cameraY /= vectorList.size
-        cameraZ /= vectorList.size
+        cameraX /= vectorList.size*2
+        cameraY /= vectorList.size*2
+        cameraZ /= vectorList.size*2
 
         centerPosition = Vector3(cameraX, cameraY, cameraZ)
 
@@ -267,11 +288,16 @@ class RenderingViewHolder(context: Context, type: Int) {
                     1.5f * maxPosition
                 )
             } else {
+
                 Vector3(
                     cameraX, cameraY,
-                    cameraZ * maxPosition
+                    cameraZ+ 1.5f * maxPosition
                 )
             }
+
+        DlogUtil.d(TAG, cameraPosition)
+        DlogUtil.d(TAG, centerPosition)
+        DlogUtil.d(TAG, maxPosition)
     }
 
     private fun setCameraPosition(vector3: Vector3) {
@@ -291,6 +317,8 @@ class RenderingViewHolder(context: Context, type: Int) {
         parentsTransformableNode.setParent(sceneView.scene)
 
         sceneView.scene.addOnPeekTouchListener { hitTestResult, motionEvent ->
+
+            DlogUtil.d(TAG, parentsTransformableNode.select())
 
             try {
                 transformationSystem.onTouch(hitTestResult, motionEvent)
@@ -362,32 +390,38 @@ class RenderingViewHolder(context: Context, type: Int) {
 
             } catch (e: java.lang.Exception) {
                 e.printStackTrace()
+                DlogUtil.d(TAG, "bug")
+                setTransformableNode()
+                return@addOnPeekTouchListener
             }
         }
     }
 
     private fun setTransformableNode() {
 
-        parentsTransformableNode.select()
         parentsTransformableNode.worldPosition = centerPosition
 
         transformableNode.worldPosition = centerPosition
-
-        parentsTransformableNode.scaleController.minScale = 1f
+        parentsTransformableNode.scaleController.minScale = 0.5f
         parentsTransformableNode.scaleController.maxScale = 3f
-        parentsTransformableNode.rotationController.isEnabled = false
 
+        transformableNode.rotationController.isEnabled = false
+        transformableNode.translationController.isEnabled = false
+        parentsTransformableNode.rotationController.isEnabled = false
+        parentsTransformableNode.translationController.isEnabled = false
+
+        parentsTransformableNode.select()
     }
 
     private fun draw3Droom() {
         //모델 랜더링
         drawType = Constant.DrawType.TYPE_ROOM
-        drawModeling(floorVectorList)
-        drawPillar(floorVectorList)
-        drawModeling(ceilingVectorList)
+        drawModeling(floorVectorList1)
+        drawPillar(floorVectorList1)
+        drawModeling(ceilingVectorList1)
 
         //치수 랜더링
-        drawSizeModeling(ceilingVectorList)
+        drawSizeModeling(ceilingVectorList1)
     }
 
     private fun draw3Dpart() {
@@ -409,10 +443,10 @@ class RenderingViewHolder(context: Context, type: Int) {
     private fun drawFloor() {
         //바닥만 그리고, 그려진걸 쿼테이션 시켜서 뒤집을 것
         drawType = Constant.DrawType.TYPE_FLOOR
-        drawModeling(floorVectorList)
+        drawModeling(floorVectorList1)
         //바닥 치수 랜더링 매서드
         drawType = Constant.DrawType.TYPE_FLOOR_MEASURE
-        xzMeasureModeling(floorVectorList)
+        //xzMeasureModeling(floorVectorList1)
     }
 
     private fun drawFloorPart() {
@@ -474,30 +508,24 @@ class RenderingViewHolder(context: Context, type: Int) {
         )
     }
 
-    private fun drawModeling(vectorList: List<Vector3>) {
+    private fun drawModeling(vectorList: List<List<Vector3>>) {
 
         for (i in vectorList.indices) {
 
-            var next: Int = if (i == vectorList.size - 1) {
-                0
-            } else {
-                i + 1
-            }
-
             addLineBetweenPoints(
-                vectorList[i],
-                vectorList[next],
+                vectorList[i][0],
+                vectorList[i][1],
                 Constant.gowoonwooriHexColorCode1
             )
 
         }
     }
 
-    private fun drawPillar(vectorList: List<Vector3>) {
+    private fun drawPillar(vectorList: List<List<Vector3>>) {
         for (i in vectorList.indices) {
             addLineBetweenPoints(
-                vectorList[i],
-                Vector3(vectorList[i].x, height / maxLength, vectorList[i].z),
+                vectorList[i][0],
+                Vector3(vectorList[i][0].x, height / maxLength, vectorList[i][0].z),
                 Constant.gowoonwooriHexColorCode1
             )
         }
@@ -617,7 +645,7 @@ class RenderingViewHolder(context: Context, type: Int) {
         )
     }
 
-    private fun drawSizeModeling(vectorList: List<Vector3>) {
+    private fun drawSizeModeling(vectorList: List<List<Vector3>>) {
 
         for (i in vectorList.indices) {
 
@@ -628,12 +656,12 @@ class RenderingViewHolder(context: Context, type: Int) {
             }
 
             startLength(
-                vectorList[i],
-                Vector3(vectorList[i].x, 0f, vectorList[i].z),
+                vectorList[i][0],
+                Vector3(vectorList[i][0].x, 0f, vectorList[i][0].z),
                 height,
                 Constant.Direction.Horizontal
             )
-            drawLengthLine(vectorList[i], vectorList[next], Constant.Direction.Horizontal)
+            drawLengthLine(vectorList[i][0], vectorList[i][1], Constant.Direction.Horizontal)
         }
     }
 

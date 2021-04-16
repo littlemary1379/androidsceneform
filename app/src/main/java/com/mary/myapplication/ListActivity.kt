@@ -15,6 +15,7 @@ import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.PermissionCheckUtil
 import com.mary.myapplication.util.RenderingUtil
 import com.mary.myapplication.viewholder.RenderingViewHolder
+import com.mary.myapplication.bean.TempRoomBean as TempRoomBean
 
 class ListActivity : AppCompatActivity() {
     private val TAG = "ListActivity"
@@ -48,6 +49,7 @@ class ListActivity : AppCompatActivity() {
         initScreenWidth()
 
     }
+
 
     private fun findView() {
         linearLayout3D = findViewById(R.id.linearLayout3D)
