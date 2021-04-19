@@ -2,10 +2,10 @@ package com.mary.myapplication
 
 import android.Manifest
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.ar.core.ArCoreApk
 import com.google.ar.core.exceptions.*
@@ -13,9 +13,7 @@ import com.mary.myapplication.customView.CustomHorizontalScrollViewDisableTouch
 import com.mary.myapplication.util.DisplayUtil
 import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.PermissionCheckUtil
-import com.mary.myapplication.util.RenderingUtil
 import com.mary.myapplication.viewholder.RenderingViewHolder
-import com.mary.myapplication.bean.TempRoomBean as TempRoomBean
 
 class ListActivity : AppCompatActivity() {
     private val TAG = "ListActivity"
@@ -34,6 +32,9 @@ class ListActivity : AppCompatActivity() {
     private lateinit var renderingViewHolder3D: RenderingViewHolder
     private lateinit var renderingViewHolderFloor: RenderingViewHolder
     private lateinit var renderingViewHolderWall: RenderingViewHolder
+
+    private val testToken =
+        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4NDkiLCJyb2xlcyI6WyJST0xFX1VTRVIiLCJST0xFX0FETUlOIl0sImlhdCI6MTYxMjQxMTQxNCwiZXhwIjoxNjQzOTQ3NDE0fQ.euw0iWIfXFFzyGse1w0jI1eY7kAMwEQ7EXV3nDpREQI"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -24,6 +24,11 @@ object MathUtil {
         return sqrt(total)
     }
 
+    fun calculationLengthBetweenTwoVector(startVector3: Vector3, endVector3: Vector3) : Float {
+        var difference = Vector3.subtract(startVector3, endVector3)
+        return difference.length()
+    }
+
     fun addVector(vector1: Vector3, vector2: Vector3, addPercentage: Int): Vector3 {
 
         var addVectorX: Float = vector2.x + (vector2.x - vector1.x) * addPercentage / 100

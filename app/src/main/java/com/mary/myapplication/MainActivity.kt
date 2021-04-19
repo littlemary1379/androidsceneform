@@ -25,6 +25,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        /**
+         * Important!!!!!!
+         * 사용자 텍스쳐 이용하는 경우 무조건 모델 로드 전 액티비티에서 실행되어야합니다
+         */
+
         RenderingUtil.loadMaterial(this)
 
         var textView : TextView = findViewById(R.id.textViewTest)
