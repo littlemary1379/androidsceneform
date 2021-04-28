@@ -1,11 +1,13 @@
 package com.mary.myapplication.bean
 
+import com.google.gson.JsonParser
 import com.mary.myapplication.bean.data.RoomBean
 import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.ParsingUtil
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
+import java.lang.Exception
 import java.net.URLDecoder
 
 class ModelWrapperItemBean {
@@ -42,10 +44,16 @@ class ModelWrapperItemBean {
         }
         try {
             jsonObj = URLDecoder.decode(jsonObj, "UTF-8")
+
             DlogUtil.d(TAG, jsonObj)
-            roomBean = RoomBean()
-            roomBean!!.init(JSONObject(jsonObj))
-            roomBean!!.thumbnailImage = imgUrl
+            try {
+                roomBean = RoomBean()
+                roomBean!!.init(JSONObject(jsonObj))
+                roomBean!!.thumbnailImage = imgUrl
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
         } catch (e: UnsupportedEncodingException) {
             e.printStackTrace()
         }
