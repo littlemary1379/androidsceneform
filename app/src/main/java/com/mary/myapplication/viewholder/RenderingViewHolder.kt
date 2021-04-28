@@ -239,9 +239,9 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
             for (j in 0 until partVector.pointList.size) {
                 pointList.add(
                     Vector3(
-                        partVector.pointList[j].x,
-                        partVector.pointList[j].y,
-                        partVector.pointList[j].z
+                        partVector.pointList[j].x / maxLength,
+                        partVector.pointList[j].y / maxLength,
+                        partVector.pointList[j].z / maxLength
                     )
                 )
             }
@@ -251,17 +251,17 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
 
                 segmentPointList.add(
                     Vector3(
-                        partVector.segmentBeanList[j].startPointBean?.x!!,
-                        partVector.segmentBeanList[j].startPointBean?.y!!,
-                        partVector.segmentBeanList[j].startPointBean?.z!!
+                        partVector.segmentBeanList[j].startPointBean?.x!! / maxLength,
+                        partVector.segmentBeanList[j].startPointBean?.y!! / maxLength,
+                        partVector.segmentBeanList[j].startPointBean?.z!! / maxLength
                     )
                 )
 
                 segmentPointList.add(
                     Vector3(
-                        partVector.segmentBeanList[j].endPointBean?.x!!,
-                        partVector.segmentBeanList[j].endPointBean?.y!!,
-                        partVector.segmentBeanList[j].endPointBean?.z!!
+                        partVector.segmentBeanList[j].endPointBean?.x!! / maxLength,
+                        partVector.segmentBeanList[j].endPointBean?.y!! / maxLength,
+                        partVector.segmentBeanList[j].endPointBean?.z!! / maxLength
                     )
                 )
 
@@ -518,13 +518,13 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
         if (doorVectorSegmentList == null && windowVectorSegmentList == null) {
             return
         } else if (doorVectorSegmentList == null) {
-            drawDoorAndWindow(windowVectorSegmentList, windowHeight)
+            drawDoorAndWindow(windowVectorSegmentList)
             return
         } else if (windowVectorSegmentList == null) {
-            drawDoorAndWindow(doorVectorSegmentList, doorHeight)
+            drawDoorAndWindow(doorVectorSegmentList)
         } else {
-            drawDoorAndWindow(doorVectorSegmentList, doorHeight)
-            drawDoorAndWindow(windowVectorSegmentList, windowHeight)
+            drawDoorAndWindow(doorVectorSegmentList)
+            drawDoorAndWindow(windowVectorSegmentList)
         }
     }
 
@@ -619,109 +619,76 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
         }
     }
 
-    private fun drawDoorAndWindow(partVectorList: List<List<List<Vector3>>>, doorHeight: Float) {
+    private fun drawDoorAndWindow(partVectorList: List<List<List<Vector3>>>) {
         //todo refactoring
         //draw Door
-
-        for(i in partVectorList.indices) {
-
-            for(j in partVectorList[i].indices) {
-                DlogUtil.d(TAG, "음....." + partVectorList[i][j])
+        for (i in partVectorList.indices) {
+            for (j in partVectorList[i].indices) {
                 addLineBetweenPoints(
-                    partVectorList[i][j][0], partVectorList[i][j][1], Constant.gowoonwooriHexColorCode2
+                    partVectorList[i][j][0],
+                    partVectorList[i][j][1],
+                    Constant.gowoonwooriHexColorCode2
                 )
             }
+
+            //draw Size
+            startLength(
+                partVectorList[i][0][0],
+                partVectorList[i][0][1],
+                roomBean.wallObjectList[i].segmentBeanList[0].length,
+                Constant.Direction.Horizontal
+            )
+
+            startLength(
+                partVectorList[i][1][0],
+                partVectorList[i][1][1],
+                roomBean.wallObjectList[i].segmentBeanList[0].length,
+                Constant.Direction.Horizontal
+            )
+
+            startLength(
+                partVectorList[i][2][0],
+                partVectorList[i][2][1],
+                MathUtil.calculationLengthBetweenTwoVector(
+                    partVectorList[i][1][0],
+                    partVectorList[i][1][1],
+                ),
+                Constant.Direction.Vertical
+            )
+
+            startLength(
+                partVectorList[i][0][1],
+                partVectorList[i][0][0],
+                MathUtil.calculationLengthBetweenTwoVector(
+                    partVectorList[i][1][0],
+                    partVectorList[i][1][1],
+                ),
+                Constant.Direction.Vertical
+            )
+
+            drawLengthLine(
+                partVectorList[i][0][0],
+                partVectorList[i][0][1],
+                Constant.Direction.Horizontal
+            )
+
+            drawLengthLine(
+                partVectorList[i][1][0],
+                partVectorList[i][1][1],
+                Constant.Direction.Vertical
+            )
         }
 
-//        //draw Size
-//        startLength(
-//            Vector3(
-//                partVectorList[0].x,
-//                partVectorList[0].y + doorHeight / maxLength,
-//                partVectorList[0].z
-//            ), partVectorList[0], doorHeight, Constant.Direction.Horizontal
-//        )
-//
-//        startLength(
-//            Vector3(
-//                partVectorList[1].x,
-//                partVectorList[1].y + doorHeight / maxLength,
-//                partVectorList[1].z
-//            ), partVectorList[1], doorHeight, Constant.Direction.Horizontal
-//        )
-//
-//        startLength(
-//            Vector3(
-//                partVectorList[1].x,
-//                partVectorList[1].y + doorHeight / maxLength,
-//                partVectorList[1].z
-//            ),
-//            Vector3(
-//                partVectorList[0].x,
-//                partVectorList[0].y + doorHeight / maxLength,
-//                partVectorList[0].z
-//            ),
-//            MathUtil.calculationLength(
-//                listOf(
-//                    (partVectorList[1].x - partVectorList[0].x) * maxLength,
-//                    (partVectorList[1].z - partVectorList[0].z) * maxLength
-//                )
-//            ), Constant.Direction.Vertical
-//        )
-//
-//        startLength(
-//            partVectorList[1], partVectorList[0],
-//            MathUtil.calculationLength(
-//                listOf(
-//                    (partVectorList[1].x - partVectorList[0].x) * maxLength,
-//                    (partVectorList[1].y - partVectorList[0].y) * maxLength
-//                )
-//            ), Constant.Direction.Vertical
-//        )
-//
-//        drawLengthLine(
-//            Vector3(
-//                partVectorList[0].x,
-//                partVectorList[0].y + doorHeight / maxLength,
-//                partVectorList[0].z
-//            ), Vector3(
-//                partVectorList[1].x,
-//                partVectorList[1].y + doorHeight / maxLength,
-//                partVectorList[1].z
-//            ), Constant.Direction.Horizontal
-//        )
-//
-//        drawLengthLine(
-//            MathUtil.addVector(
-//                Vector3(
-//                    partVectorList[0].x,
-//                    partVectorList[0].y + doorHeight / maxLength,
-//                    partVectorList[0].z
-//                ), Vector3(
-//                    partVectorList[1].x,
-//                    partVectorList[1].y + doorHeight / maxLength,
-//                    partVectorList[1].z
-//                ), 10
-//            ),
-//            MathUtil.addVector(partVectorList[0], partVectorList[1], 10),
-//            Constant.Direction.Vertical
-//        )
     }
 
     private fun drawSizeModeling(vectorList: List<List<Vector3>>) {
 
         for (i in vectorList.indices) {
 
-            var next: Int = if (i == vectorList.size - 1) {
-                0
-            } else {
-                i + 1
-            }
-
             startLength(
                 vectorList[i][0],
                 Vector3(vectorList[i][0].x, 0f, vectorList[i][0].z),
-                height,
+                roomBean.height,
                 Constant.Direction.Horizontal
             )
             drawLengthLine(vectorList[i][0], vectorList[i][1], Constant.Direction.Horizontal)
@@ -978,7 +945,7 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
 
             if (direction == Constant.Direction.Horizontal) {
 
-                percentageHeight = measure / maxLength * 0.2f
+                percentageHeight = measure / maxLength * 0.1f
 
                 //Rendering
                 RenderingUtil.extendCylinderLineY(

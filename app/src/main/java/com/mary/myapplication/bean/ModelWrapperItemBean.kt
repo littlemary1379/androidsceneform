@@ -44,8 +44,6 @@ class ModelWrapperItemBean {
         }
         try {
             jsonObj = URLDecoder.decode(jsonObj, "UTF-8")
-
-            DlogUtil.d(TAG, jsonObj)
             try {
                 roomBean = RoomBean()
                 roomBean!!.init(JSONObject(jsonObj))

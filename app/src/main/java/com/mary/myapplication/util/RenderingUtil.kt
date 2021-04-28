@@ -256,7 +256,7 @@ object RenderingUtil {
                 node.renderable = model
                 node.setParent(parentNode)
                 node.worldPosition =
-                    Vector3.add(to, MathUtil.addVector(from, to, 20)).scaled(.5f);
+                    Vector3.add(to, MathUtil.addVector(from, to, 10)).scaled(.5f);
                 DlogUtil.d(TAG, "extendCylinderLineX : ${MathUtil.addVector(from, to, 20).x}")
 
                 //4. set rotation
