@@ -1,8 +1,13 @@
 package com.mary.myapplication
 
 import android.os.Bundle
+import android.widget.Adapter
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.firebase.firestore.FirebaseFirestore
+import com.mary.myapplication.adapter.ModelListAdapter
 import com.mary.myapplication.bean.ModelWrapperItemBean
 import com.mary.myapplication.constant.Constant
 import com.mary.myapplication.constant.WebConstant
@@ -22,12 +27,15 @@ class MainActivity : AppCompatActivity() {
         private const val TAG = "MainActivity"
     }
 
-    private lateinit var selectedModelWrapperItemBeanList: MutableList<ModelWrapperItemBean>
-
-
     private var dataSize : Int = 0
     private lateinit var tempRoomBean : TempRoomBean;
     private lateinit var db : FirebaseFirestore
+
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private lateinit var recyclerView: RecyclerView
+
+    private lateinit var modelListAdapter: ModelListAdapter
+    private lateinit var selectedModelWrapperItemBeanList: MutableList<ModelWrapperItemBean>
     private val testToken =
         "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4NDkiLCJyb2xlcyI6WyJST0xFX1VTRVIiLCJST0xFX0FETUlOIl0sImlhdCI6MTYxMjQxMTQxNCwiZXhwIjoxNjQzOTQ3NDE0fQ.euw0iWIfXFFzyGse1w0jI1eY7kAMwEQ7EXV3nDpREQI"
 
@@ -42,13 +50,9 @@ class MainActivity : AppCompatActivity() {
 
         RenderingUtil.loadMaterial(this)
 
-//        var textView : TextView = findViewById(R.id.textViewTest)
-//
-//        textView.setOnClickListener {
-//
-//            ActivityUtil.startNewActivityWithoutFinish(this, ListActivity::class.java)
-//        }
-
+        findView()
+        initList()
+        setListener()
         load()
 
         //구글 파이어베이스로 웹 정보 로드용 코드
@@ -91,6 +95,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun findView(){
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout)
+        recyclerView = findViewById(R.id.recyclerView)
+    }
+
+    private fun initList(){
+        modelListAdapter = ModelListAdapter()
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = modelListAdapter
+    }
+
+    private fun setListener() {
+        swipeRefreshLayout.setOnRefreshListener {
+            load()
+            swipeRefreshLayout.isRefreshing = false
+        }
+    }
+
     private fun load(){
         if(::selectedModelWrapperItemBeanList.isInitialized) {
             if(selectedModelWrapperItemBeanList.isNotEmpty()){
@@ -112,6 +134,10 @@ class MainActivity : AppCompatActivity() {
                             modelWrapperItemBean.initWithJSONObject(jsonArray.getJSONObject(i))
                             selectedModelWrapperItemBeanList.add(modelWrapperItemBean)
                         }
+
+                        ThreadUtil.startUIThread(0, Runnable {
+                            modelListAdapter.reloadItem(selectedModelWrapperItemBeanList)
+                        })
 
                     }
                 } else {

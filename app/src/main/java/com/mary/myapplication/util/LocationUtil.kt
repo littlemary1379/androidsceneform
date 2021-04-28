@@ -6,7 +6,7 @@ import kotlin.math.max
 object LocationUtil {
 
     //바닥을 이루는 면 중 가장 긴 면을 구해야한다.
-    fun longLength(locationList: List<Vector3>, height: Float) : Float {
+    fun longLength(locationList: MutableList<Vector3>, height: Float) : Float {
         var maxLength = 0f
         var length1: Float
         var length2: Float
@@ -85,7 +85,7 @@ object LocationUtil {
 
     //바닥을 이루는 면 중 가장 긴 면을 구해야한다.
     @JvmName("longLength1")
-    fun longLength(locationList: List<List<Vector3>>, height: Float) : Float {
+    fun longLength(locationList: List<MutableList<Vector3>>, height: Float) : Float {
         var maxLength = 0f
         var length1: Float
 
@@ -111,5 +111,6 @@ object LocationUtil {
 
         return maxLength
     }
+
 
 }

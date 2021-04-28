@@ -12,6 +12,7 @@ import com.google.ar.sceneform.ux.FootprintSelectionVisualizer
 import com.google.ar.sceneform.ux.TransformableNode
 import com.google.ar.sceneform.ux.TransformationSystem
 import com.mary.myapplication.R
+import com.mary.myapplication.bean.data.RoomBean
 import com.mary.myapplication.constant.Constant
 import com.mary.myapplication.temp.RoomData
 import com.mary.myapplication.util.*
@@ -20,7 +21,7 @@ import kotlin.math.cos
 import kotlin.math.round
 import kotlin.math.sin
 
-class RenderingViewHolder(context: Context, type: Int) {
+class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
 
     companion object {
         private const val TAG = "RenderingViewHolder"
@@ -80,19 +81,25 @@ class RenderingViewHolder(context: Context, type: Int) {
     private var percentageDoorWidth: Float = 0f
 
     private var roomData = RoomData()
+
+    var roomBean = roomBean
+    var pointList: MutableList<Vector3> = mutableListOf()
+    var segmentList: MutableList<List<Vector3>> = mutableListOf()
+
     private lateinit var drawType: Constant.DrawType
 
     init {
 
         //initESS()
         findView()
-        height = 300f
         doorHeight = 15f
         windowHeight = 10f
 
-        maxLength = LocationUtil.longLength(Constant.vectorList!!, height)
+        initPointList()
 
-        initVectorList(Constant.vectorList!!)
+        maxLength = LocationUtil.longLength(pointList, roomBean.height)
+
+        initVectorList(segmentList)
 
         initCenterVector(vectorList1)
         setCameraPosition(cameraPosition)
@@ -153,6 +160,42 @@ class RenderingViewHolder(context: Context, type: Int) {
         sceneView.resume()
     }
 
+    private fun initPointList() {
+        var floorBean = roomBean.floorPlaneBean
+        for (i in 0 until floorBean?.pointList?.size!!) {
+            if (floorBean != null) {
+                pointList.add(
+                    Vector3(
+                        floorBean.pointList[i].x,
+                        floorBean.pointList[i].y,
+                        floorBean.pointList[i].z
+                    )
+                )
+            }
+        }
+
+        for (i in 0 until floorBean?.segmentBeanList?.size!!) {
+            if (floorBean != null) {
+                var list: MutableList<Vector3> = mutableListOf()
+                list.add(
+                    Vector3(
+                        floorBean.segmentBeanList[i].startPointBean?.x!!,
+                        floorBean.segmentBeanList[i].startPointBean?.y!!,
+                        floorBean.segmentBeanList[i].startPointBean?.z!!
+                    )
+                )
+                list.add(
+                    Vector3(
+                        floorBean.segmentBeanList[i].endPointBean?.x!!,
+                        floorBean.segmentBeanList[i].endPointBean?.y!!,
+                        floorBean.segmentBeanList[i].endPointBean?.z!!
+                    )
+                )
+                segmentList.add(list)
+            }
+        }
+    }
+
     private fun initVectorList(rawVectorList: List<List<Vector3>>) {
 
         floorVectorList1 = mutableListOf()
@@ -160,8 +203,16 @@ class RenderingViewHolder(context: Context, type: Int) {
 
         for (i in rawVectorList.indices) {
             var cellingPointList = listOf(
-                Vector3(rawVectorList[i][0].x / maxLength, height/maxLength, rawVectorList[i][0].z / maxLength),
-                Vector3(rawVectorList[i][1].x / maxLength, height/maxLength, rawVectorList[i][1].z / maxLength)
+                Vector3(
+                    rawVectorList[i][0].x / maxLength,
+                    roomBean.height / maxLength,
+                    rawVectorList[i][0].z / maxLength
+                ),
+                Vector3(
+                    rawVectorList[i][1].x / maxLength,
+                    roomBean.height / maxLength,
+                    rawVectorList[i][1].z / maxLength
+                )
             )
 
             var floorPointList = listOf(
@@ -249,9 +300,9 @@ class RenderingViewHolder(context: Context, type: Int) {
                 maxY = vectorList[i][1].y
         }
 
-        cameraX /= vectorList.size*2
-        cameraY /= vectorList.size*2
-        cameraZ /= vectorList.size*2
+        cameraX /= vectorList.size * 2
+        cameraY /= vectorList.size * 2
+        cameraZ /= vectorList.size * 2
 
         centerPosition = Vector3(cameraX, cameraY, cameraZ)
 
@@ -292,7 +343,7 @@ class RenderingViewHolder(context: Context, type: Int) {
 
                 Vector3(
                     cameraX, cameraY,
-                    cameraZ+ 1.5f * maxPosition
+                    cameraZ + 1.5f * maxPosition
                 )
             }
 
@@ -428,12 +479,12 @@ class RenderingViewHolder(context: Context, type: Int) {
     private fun draw3Dpart() {
         //문, 창문 랜더링
         drawType = Constant.DrawType.TYPE_ROOM_PART
-        if(doorVectorList == null && windowVectorList == null) {
+        if (doorVectorList == null && windowVectorList == null) {
             return
-        } else if(doorVectorList==null) {
+        } else if (doorVectorList == null) {
             drawDoorAndWindow(windowVectorList, windowHeight)
             return
-        } else if(windowVectorList == null) {
+        } else if (windowVectorList == null) {
             drawDoorAndWindow(doorVectorList, doorHeight)
         } else {
             drawDoorAndWindow(doorVectorList, doorHeight)
@@ -526,7 +577,7 @@ class RenderingViewHolder(context: Context, type: Int) {
         for (i in vectorList.indices) {
             addLineBetweenPoints(
                 vectorList[i][0],
-                Vector3(vectorList[i][0].x, height / maxLength, vectorList[i][0].z),
+                Vector3(vectorList[i][0].x, roomBean.height / maxLength, vectorList[i][0].z),
                 Constant.gowoonwooriHexColorCode1
             )
         }

@@ -12,7 +12,7 @@ class RoomBean {
     private val TAG = "RoomBean"
 
     // normal vector of floor
-    lateinit var normalVectorOfPlane: Vector3
+    var normalVectorOfPlane: Vector3 = Vector3()
 
     // floor
     var floorPlaneBean: PlaneBean? = null
@@ -48,12 +48,7 @@ class RoomBean {
 
     var thumbnailImage: String? = null
 
-    fun RoomBean() {
-
-    }
-
     init {
-        normalVectorOfPlane = Vector3()
         floorPlaneBean = PlaneBean()
         ceilingPlaneBean = PlaneBean()
         wallList.clear()

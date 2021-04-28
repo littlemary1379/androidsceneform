@@ -13,7 +13,7 @@ class PlaneBean {
     var type: String? = null
     var objectOnIndex = 0
 
-    fun PlaneBean() {
+    init {
         pointList.clear()
         segmentBeanList.clear()
         type = ""

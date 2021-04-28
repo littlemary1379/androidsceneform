@@ -9,11 +9,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.ar.core.ArCoreApk
 import com.google.ar.core.exceptions.*
+import com.mary.myapplication.bean.data.RoomBean
 import com.mary.myapplication.customView.CustomHorizontalScrollViewDisableTouch
+import com.mary.myapplication.util.ActivityUtil
 import com.mary.myapplication.util.DisplayUtil
 import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.PermissionCheckUtil
 import com.mary.myapplication.viewholder.RenderingViewHolder
+import org.json.JSONObject
 
 class ListActivity : AppCompatActivity() {
     private val TAG = "ListActivity"
@@ -33,12 +36,14 @@ class ListActivity : AppCompatActivity() {
     private lateinit var renderingViewHolderFloor: RenderingViewHolder
     private lateinit var renderingViewHolderWall: RenderingViewHolder
 
-
+    private var isNew = false
+    private lateinit var roomBean: RoomBean
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
 
+        checkBundle()
         findView()
         setListener()
 
@@ -50,6 +55,20 @@ class ListActivity : AppCompatActivity() {
 
     }
 
+    private fun checkBundle() {
+        var bundle: Bundle? = intent.getBundleExtra(ActivityUtil.BUNDLE_KEY)
+        if (bundle != null) {
+            isNew = bundle.getBoolean("isNew", false)
+            var roomBeanJSONObjectString = bundle.getString("roomBean", "")
+            if (roomBeanJSONObjectString == "") {
+                finish()
+            } else {
+                roomBean = RoomBean()
+                var jsonObject = JSONObject(roomBeanJSONObjectString)
+                roomBean.init(jsonObject)
+            }
+        }
+    }
 
     private fun findView() {
         linearLayout3D = findViewById(R.id.linearLayout3D)
@@ -76,13 +95,13 @@ class ListActivity : AppCompatActivity() {
     private fun initSceneView() {
 
 
-        renderingViewHolder3D = RenderingViewHolder(this, RenderingViewHolder.TYPE_3D)
+        renderingViewHolder3D = RenderingViewHolder(this, RenderingViewHolder.TYPE_3D, roomBean)
         frameLayout3D.addView(renderingViewHolder3D.view)
 
-        renderingViewHolderFloor = RenderingViewHolder(this, RenderingViewHolder.TYPE_FLOOR)
+        renderingViewHolderFloor = RenderingViewHolder(this, RenderingViewHolder.TYPE_FLOOR, roomBean)
         frameLayoutFloor.addView(renderingViewHolderFloor.view)
 
-        renderingViewHolderWall = RenderingViewHolder(this, RenderingViewHolder.TYPE_WALL)
+        renderingViewHolderWall = RenderingViewHolder(this, RenderingViewHolder.TYPE_WALL, roomBean)
     }
 
     override fun onResume() {
