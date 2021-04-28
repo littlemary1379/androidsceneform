@@ -10,7 +10,7 @@ class SegmentBean {
 
     var length = 0f
 
-    fun SegmentBean() {
+    init {
         startPointBean = PointBean()
         endPointBean = PointBean()
         length = 0f

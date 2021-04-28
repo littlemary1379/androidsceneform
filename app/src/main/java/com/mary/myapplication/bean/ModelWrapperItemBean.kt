@@ -1,6 +1,7 @@
 package com.mary.myapplication.bean
 
 import com.mary.myapplication.bean.data.RoomBean
+import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.ParsingUtil
 import org.json.JSONException
 import org.json.JSONObject
@@ -8,6 +9,8 @@ import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
 
 class ModelWrapperItemBean {
+
+    private val TAG = "ModelWrapperItemBean"
 
     var id: Long = 0
     var userId: Long = 0
@@ -39,6 +42,7 @@ class ModelWrapperItemBean {
         }
         try {
             jsonObj = URLDecoder.decode(jsonObj, "UTF-8")
+            DlogUtil.d(TAG, jsonObj)
             roomBean = RoomBean()
             roomBean!!.init(JSONObject(jsonObj))
             roomBean!!.thumbnailImage = imgUrl

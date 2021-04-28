@@ -9,10 +9,9 @@ import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.*
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.TransformableNode
+import com.mary.myapplication.constant.Constant
 import com.mary.myapplication.util.event.ESSArrow
 import com.mary.myapplication.util.event.EventCenter
-import java.util.concurrent.Callable
-import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
 

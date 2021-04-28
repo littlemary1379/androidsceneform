@@ -12,6 +12,7 @@ import com.google.ar.sceneform.ux.FootprintSelectionVisualizer
 import com.google.ar.sceneform.ux.TransformableNode
 import com.google.ar.sceneform.ux.TransformationSystem
 import com.mary.myapplication.R
+import com.mary.myapplication.constant.Constant
 import com.mary.myapplication.temp.RoomData
 import com.mary.myapplication.util.*
 import kotlin.math.abs

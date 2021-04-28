@@ -33,8 +33,7 @@ class ListActivity : AppCompatActivity() {
     private lateinit var renderingViewHolderFloor: RenderingViewHolder
     private lateinit var renderingViewHolderWall: RenderingViewHolder
 
-    private val testToken =
-        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4NDkiLCJyb2xlcyI6WyJST0xFX1VTRVIiLCJST0xFX0FETUlOIl0sImlhdCI6MTYxMjQxMTQxNCwiZXhwIjoxNjQzOTQ3NDE0fQ.euw0iWIfXFFzyGse1w0jI1eY7kAMwEQ7EXV3nDpREQI"
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -1,4 +1,4 @@
-package com.mary.myapplication.util
+package com.mary.myapplication.constant
 
 import com.google.ar.sceneform.math.Vector3
 

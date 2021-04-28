@@ -12,7 +12,7 @@ class RoomBean {
     private val TAG = "RoomBean"
 
     // normal vector of floor
-    var normalVectorOfPlane: Vector3? = null
+    lateinit var normalVectorOfPlane: Vector3
 
     // floor
     var floorPlaneBean: PlaneBean? = null
@@ -49,6 +49,10 @@ class RoomBean {
     var thumbnailImage: String? = null
 
     fun RoomBean() {
+
+    }
+
+    init {
         normalVectorOfPlane = Vector3()
         floorPlaneBean = PlaneBean()
         ceilingPlaneBean = PlaneBean()
@@ -103,7 +107,7 @@ class RoomBean {
             jsonObject?.let { ParsingUtil.parsingString(it, "normalVectorOfPlaneY")?.toFloat() }
         val normalVectorOfPlaneZ: Float? =
             jsonObject?.let { ParsingUtil.parsingString(it, "normalVectorOfPlaneZ")?.toFloat() }
-        normalVectorOfPlane!!.set(
+        normalVectorOfPlane.set(
             Vector3(
                 normalVectorOfPlaneX!!,
                 normalVectorOfPlaneY!!,
@@ -377,7 +381,7 @@ class RoomBean {
             floorPlaneBean!!.clear()
             floorPlaneBean = null
         }
-        normalVectorOfPlane = null
+        //normalVectorOfPlane = null
         height = 0f
         floorFixedY = 0f
         area = 0f
