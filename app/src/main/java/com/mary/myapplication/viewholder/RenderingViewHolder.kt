@@ -41,7 +41,6 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
     private lateinit var transformableViewNode: TransformableNode
 
     private var maxLength = 0f
-    private var height = 0f
 
     private lateinit var floorVectorList1: MutableList<List<Vector3>>
     private lateinit var ceilingVectorList1: MutableList<List<Vector3>>
@@ -50,11 +49,9 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
     private var doorHeight = 0f
     private var windowHeight = 0f
 
-    private var windowVectorList: MutableList<Vector3> = mutableListOf()
     private var windowVectorPointList: MutableList<List<Vector3>> = mutableListOf()
     private var windowVectorSegmentList: MutableList<List<List<Vector3>>> = mutableListOf()
 
-    private var doorVectorList: MutableList<Vector3> = mutableListOf()
     private var doorVectorPointList: MutableList<List<Vector3>> = mutableListOf()
     private var doorVectorSegmentList: MutableList<List<List<Vector3>>> = mutableListOf()
 
@@ -90,7 +87,6 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
 
     init {
 
-        //initESS()
         findView()
         doorHeight = 15f
         windowHeight = 10f
@@ -120,7 +116,7 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
                 isFloor = true
 
                 drawFloor()
-                //drawFloorPart()
+                drawFloorPart()
 
                 ThreadUtil.startUIThread(300, Runnable {
                     quaternionXAxis90Rendering()
@@ -421,6 +417,7 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
                         DlogUtil.d(TAG, "손가락 2개")
 
                         isScale = true;
+                        transformationSystem.selectNode(parentsTransformableNode)
 
                     } else {
                         DlogUtil.d(TAG, "손가락 1개")
@@ -459,6 +456,9 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
 
                             parentsTransformableNode.localRotation =
                                 Quaternion.multiply(xQuaternion, yQuaternion)
+                        } else {
+
+                            return@addOnPeekTouchListener
                         }
                     }
 
@@ -479,7 +479,7 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
             } catch (e: java.lang.Exception) {
                 e.printStackTrace()
                 DlogUtil.d(TAG, "bug")
-                setTransformableNode()
+
                 return@addOnPeekTouchListener
             }
         }
@@ -534,66 +534,90 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
         drawModeling(floorVectorList1)
         //바닥 치수 랜더링 매서드
         drawType = Constant.DrawType.TYPE_FLOOR_MEASURE
-        //xzMeasureModeling(floorVectorList1)
+        xzMeasureModeling(floorVectorList1)
     }
 
     private fun drawFloorPart() {
         drawType = Constant.DrawType.TYPE_FLOOR_DOOR
-        //todo refactoring
-        addLineBetweenPoints(
-            Vector3(doorVectorList[0].x, 0f, doorVectorList[0].z),
-            Vector3(doorVectorList[1].x, 0f, doorVectorList[1].z),
-            Constant.serenityHexColorCode
-        )
+        if (doorVectorSegmentList.isNotEmpty()) {
+            for (i in 0 until doorVectorSegmentList.size) {
+                addLineBetweenPoints(
+                    Vector3(doorVectorSegmentList[i][0][0].x, 0f, doorVectorSegmentList[i][0][0].z),
+                    Vector3(doorVectorSegmentList[i][0][1].x, 0f, doorVectorSegmentList[i][0][1].z),
+                    Constant.serenityHexColorCode
+                )
+            }
+        }
 
         drawType = Constant.DrawType.TYPE_FLOOR_WINDOW
-        //todo refactoring
-        addLineBetweenPoints(
-            Vector3(windowVectorList[0].x, 0f, windowVectorList[0].z),
-            Vector3(windowVectorList[1].x, 0f, windowVectorList[1].z),
-            Constant.serenityHexColorCodeTransparent50
-        )
+        if (windowVectorSegmentList.isNotEmpty()) {
+            for (i in 0 until windowVectorSegmentList.size) {
+                addLineBetweenPoints(
+                    Vector3(
+                        windowVectorSegmentList[i][0][0].x,
+                        0f,
+                        windowVectorSegmentList[i][0][0].z
+                    ),
+                    Vector3(
+                        windowVectorSegmentList[i][0][1].x,
+                        0f,
+                        windowVectorSegmentList[i][0][1].z
+                    ),
+                    Constant.serenityHexColorCode
+                )
+            }
+        }
 
-        addLineBetweenPoints(
-            Vector3(windowVectorList[2].x, 0f, windowVectorList[2].z),
-            Vector3(windowVectorList[3].x, 0f, windowVectorList[3].z),
-            Constant.serenityHexColorCodeTransparent50
-        )
+        drawType = Constant.DrawType.TYPE_FLOOR_DOOR_MEASURE
 
-        addLineBetweenPoints(
-            Vector3(windowVectorList[4].x, 0f, windowVectorList[4].z),
-            Vector3(windowVectorList[5].x, 0f, windowVectorList[5].z),
-            Constant.serenityHexColorCodeTransparent50
-        )
+        if (doorVectorSegmentList.isNotEmpty()) {
+            for (i in 0 until doorVectorSegmentList.size) {
+                xzMeasureModeling(
+                    listOf(
+                        Vector3(
+                            doorVectorSegmentList[i][0][0].x,
+                            0f,
+                            doorVectorSegmentList[i][0][0].z
+                        ),
+                        Vector3(
+                            doorVectorSegmentList[i][0][1].x,
+                            0f,
+                            doorVectorSegmentList[i][0][1].z
+                        )
+                    ),i
+                )
+            }
+        }
 
-        drawType = Constant.DrawType.TYPE_FLOOR_PART_MEASURE
-        xzMeasureModeling(
-            listOf(
-                Vector3(doorVectorList[0].x, 0f, doorVectorList[0].z),
-                Vector3(doorVectorList[1].x, 0f, doorVectorList[1].z)
-            )
-        )
+        drawType = Constant.DrawType.TYPE_FLOOR_WINDOW_MEASURE
 
-        xzMeasureModeling(
-            listOf(
-                Vector3(windowVectorList[0].x, 0f, windowVectorList[0].z),
-                Vector3(windowVectorList[1].x, 0f, windowVectorList[1].z)
-            )
-        )
+        if (windowVectorSegmentList.isNotEmpty()) {
+            for (i in 0 until windowVectorSegmentList.size) {
+                xzMeasureModeling(
+                    listOf(
+                        Vector3(
+                            windowVectorSegmentList[i][0][0].x,
+                            0f,
+                            windowVectorSegmentList[i][0][0].z
+                        ),
+                        Vector3(
+                            windowVectorSegmentList[i][0][1].x,
+                            0f,
+                            windowVectorSegmentList[i][0][1].z
+                        )
+                    ),i
+                )
+            }
+        }
 
-        xzMeasureModeling(
-            listOf(
-                Vector3(windowVectorList[2].x, 0f, windowVectorList[2].z),
-                Vector3(windowVectorList[3].x, 0f, windowVectorList[3].z)
-            )
-        )
+//        if (windowVectorSegmentList.isNotEmpty()) {
+//            for (i in 0 until windowVectorSegmentList.size) {
+//                xzMeasureModeling(
+//                    windowVectorSegmentList[i][0]
+//                )
+//            }
+//        }
 
-        xzMeasureModeling(
-            listOf(
-                Vector3(windowVectorList[4].x, 0f, windowVectorList[4].z),
-                Vector3(windowVectorList[5].x, 0f, windowVectorList[5].z)
-            )
-        )
     }
 
     private fun drawModeling(vectorList: List<List<Vector3>>) {
@@ -620,7 +644,6 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
     }
 
     private fun drawDoorAndWindow(partVectorList: List<List<List<Vector3>>>) {
-        //todo refactoring
         //draw Door
         for (i in partVectorList.indices) {
             for (j in partVectorList[i].indices) {
@@ -695,13 +718,7 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
         }
     }
 
-    private fun xzMeasureModeling(vectorList: List<Vector3>) {
-
-        var length = when (drawType) {
-            Constant.DrawType.TYPE_FLOOR_MEASURE -> 0.15
-            Constant.DrawType.TYPE_FLOOR_PART_MEASURE -> 0.5
-            else -> 0.0
-        }
+    private fun xzMeasureModeling(vectorList: List<Vector3>, index : Int) {
 
         var upper = 0
 
@@ -716,6 +733,18 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
                 0
             } else {
                 i + 1
+            }
+
+            var length = when (drawType) {
+                Constant.DrawType.TYPE_FLOOR_MEASURE -> 0.15
+                Constant.DrawType.TYPE_FLOOR_DOOR_MEASURE -> 0.4
+                    Constant.DrawType.TYPE_FLOOR_WINDOW_MEASURE ->
+                    if(index % 2 == 0) {
+                        0.6
+                    } else {
+                        0.8
+                    }
+                else -> 0.0
             }
 
             //창문이나 문처럼 직선 하나로 랜더링이 완료되는 경우, i=1이 마지막이 되므로, 랜더링이 2회 일어나는 것을 방지하는 if문
@@ -784,6 +813,83 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
         }
     }
 
+    @JvmName("xzMeasureModeling1")
+    private fun xzMeasureModeling(vectorList: List<List<Vector3>>) {
+
+        var upper = 0
+
+        var newVector1: Vector3
+        var newVector2: Vector3
+        var newVector3: Vector3
+        var newVector4: Vector3
+
+        for (i in vectorList.indices) {
+
+            var length = when (drawType) {
+                Constant.DrawType.TYPE_FLOOR_MEASURE -> 0.15
+                Constant.DrawType.TYPE_FLOOR_DOOR_MEASURE -> 0.5
+                else -> 0.0
+            }
+
+            var slope = MathUtil.calculationSlopeNormalVector(vectorList[i][0], vectorList[i][1])
+
+            //upper 1 :  감소추이 upper 0 : 평행 upper -1 : 증가추이
+            if (slope == 0.0 || vectorList[i][0].z == vectorList[i][1].z) {
+
+                upper = 0
+
+                newVector1 = Vector3(vectorList[i][0].x, 0f, (vectorList[i][0].z + length).toFloat())
+                newVector2 =
+                    Vector3(vectorList[i][1].x, 0f, (vectorList[i][1].z + length).toFloat())
+                newVector3 = Vector3(vectorList[i][0].x, 0f, (vectorList[i][0].z + length / 2).toFloat())
+                newVector4 =
+                    Vector3(vectorList[i][1].x, 0f, (vectorList[i][1].z + length / 2).toFloat())
+
+            } else {
+
+                if (vectorList[i][0].z < vectorList[i][1].z) {
+                    upper = -1
+                } else if (vectorList[i][0].z > vectorList[i][1].z) {
+                    upper = 1
+                }
+
+                var xzlist1 =
+                    MathUtil.calculationStraightLineEquation(vectorList[i][0], slope, length, upper)
+                newVector1 = Vector3(xzlist1[0].toFloat(), 0f, xzlist1[1].toFloat())
+
+                var xzlist2 =
+                    MathUtil.calculationStraightLineEquation(vectorList[i][1], slope, length, upper)
+                newVector2 = Vector3(xzlist2[0].toFloat(), 0f, xzlist2[1].toFloat())
+
+                var xzlist3 =
+                    MathUtil.calculationStraightLineEquation(
+                        vectorList[i][0],
+                        slope,
+                        length / 2,
+                        upper
+                    )
+                newVector3 = Vector3(xzlist3[0].toFloat(), 0f, xzlist3[1].toFloat())
+
+                var xzlist4 =
+                    MathUtil.calculationStraightLineEquation(
+                        vectorList[i][1],
+                        slope,
+                        length / 2,
+                        upper
+                    )
+                newVector4 = Vector3(xzlist4[0].toFloat(), 0f, xzlist4[1].toFloat())
+            }
+
+            addLineBetweenPoints(Vector3(vectorList[i][0].x, 0f, vectorList[i][0].z), newVector1, Constant.gowoonwooriHexColorCode1)
+            addLineBetweenPoints(Vector3(vectorList[i][1].x, 0f, vectorList[i][1].z), newVector2, Constant.gowoonwooriHexColorCode1)
+
+            addLineBetweenPoints(newVector3, newVector4, Constant.gowoonwooriHexColorCode1)
+            setLengthLine(newVector4, newVector3, Constant.Direction.FLOOR)
+        }
+    }
+
+
+
     private fun addLineBetweenPoints(from: Vector3, to: Vector3, colorCode: String) {
         // Node that is automatically positioned in world space based on the ARCore Anchor.
         transformableNode = TransformableNode(transformationSystem)
@@ -820,7 +926,7 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
                     to
                 )
             }
-            Constant.DrawType.TYPE_FLOOR_MEASURE, Constant.DrawType.TYPE_FLOOR_PART_MEASURE -> {
+            Constant.DrawType.TYPE_FLOOR_MEASURE, Constant.DrawType.TYPE_FLOOR_DOOR_MEASURE, Constant.DrawType.TYPE_FLOOR_WINDOW_MEASURE -> {
 
                 RenderingUtil.drawCylinderLine(
                     view.context,
@@ -832,6 +938,7 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
                     to
                 )
             }
+
 
             Constant.DrawType.TYPE_FLOOR_WINDOW -> {
                 DlogUtil.d(TAG, "???????????????????????")
@@ -897,7 +1004,7 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
                     to
                 )
             }
-            Constant.DrawType.TYPE_FLOOR_MEASURE, Constant.DrawType.TYPE_FLOOR_PART_MEASURE -> {
+            Constant.DrawType.TYPE_FLOOR_MEASURE, Constant.DrawType.TYPE_FLOOR_DOOR_MEASURE -> {
 
                 RenderingUtil.drawCylinderLine(
                     view.context,
