@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">My Application</string>
+
+    <string name="report_view_holder_area">면적 : %s</string>
+    <string name="report_view_holder_circumference">둘레 : %s</string>
+    <string name="report_view_holder_height">높이 : %s</string>
+    <string name="report_view_holder_wallArea">입면면적 : %s</string>
+    <string name="report_view_holder_volume">체적 : %s</string>
 </resources>

@@ -1,101 +1,122 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ListActivity"
+    android:background="@color/white"
     android:orientation="vertical"
-    android:background="@color/white">
-
-    <com.mary.myapplication.customView.CustomHorizontalScrollViewDisableTouch
-        android:id="@+id/horizontalScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scrollbars="none"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="50dp">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <FrameLayout
-                android:id="@+id/frameLayout3D"
-                android:layout_width="100dp"
-                android:layout_height="100dp" />
-
-            <FrameLayout
-                android:id="@+id/frameLayoutFloor"
-                android:layout_width="100dp"
-                android:layout_height="100dp" />
-
-            <FrameLayout
-                android:id="@+id/frameLayoutWall"
-                android:layout_width="100dp"
-                android:layout_height="100dp" />
-
-        </LinearLayout>
-    </com.mary.myapplication.customView.CustomHorizontalScrollViewDisableTouch>
-
+    tools:context=".ListActivity">
 
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="50dp"
-        android:layout_gravity="center">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:id="@+id/frameLayoutNavigationBar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
+
+        <com.mary.myapplication.customView.CustomHorizontalScrollViewDisableTouch
+            android:id="@+id/horizontalScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/frameLayout3D"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp" />
+
+                <FrameLayout
+                    android:id="@+id/frameLayoutFloor"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp" />
+
+                <FrameLayout
+                    android:id="@+id/frameLayoutWall"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp" />
+
+            </LinearLayout>
+        </com.mary.myapplication.customView.CustomHorizontalScrollViewDisableTouch>
+
 
         <LinearLayout
-            android:id="@+id/linearLayout3D"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:orientation="vertical">
+            android:layout_gravity="center"
+            android:layout_marginTop="50dp"
+            android:orientation="horizontal">
 
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_margin="10dp"
-                android:src="@drawable/cube" />
-
-            <TextView
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:id="@+id/linearLayout3D"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
-                android:text="3D"
-                android:textAlignment="center"
-                android:textColor="@color/black" />
+                android:background="@color/white"
+                android:orientation="vertical">
 
-        </LinearLayout>
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_margin="10dp"
+                    android:src="@drawable/cube" />
 
-        <LinearLayout
-            android:id="@+id/linearLayoutFloor"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:orientation="vertical">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:text="3D"
+                    android:textAlignment="center"
+                    android:textColor="@color/black" />
 
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_margin="10dp"
-                android:src="@drawable/layers" />
+            </LinearLayout>
 
-            <TextView
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:id="@+id/linearLayoutFloor"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
-                android:text="floor"
-                android:textAlignment="center"
-                android:textColor="@color/black" />
+                android:background="@color/white"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_margin="10dp"
+                    android:src="@drawable/layers" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:text="floor"
+                    android:textAlignment="center"
+                    android:textColor="@color/black" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
     </LinearLayout>
 
+    <FrameLayout
+        android:id="@+id/frameLayoutShare"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/transparent_70"
+        android:visibility="gone">
 
-</LinearLayout>
+
+
+    </FrameLayout>
+
+</FrameLayout>

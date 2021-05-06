@@ -2,6 +2,9 @@ package com.mary.myapplication.viewholder
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
+import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -33,7 +36,7 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
     var view: View = LayoutInflater.from(context).inflate(R.layout.viewholder_rendering, null)
     private var type = type
 
-    private lateinit var sceneView: SceneView
+    lateinit var sceneView: SceneView
 
     private lateinit var transformationSystem: TransformationSystem
     private lateinit var transformableNode: TransformableNode
@@ -394,7 +397,8 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
 
     private fun initSceneView() {
 
-        sceneView.renderer?.setClearColor(com.google.ar.sceneform.rendering.Color(Color.WHITE))
+        //sceneView.renderer?.setClearColor(com.google.ar.sceneform.rendering.Color(Color.WHITE))
+
 
         transformationSystem =
             TransformationSystem(view.resources.displayMetrics, FootprintSelectionVisualizer())
@@ -1204,4 +1208,5 @@ class RenderingViewHolder(context: Context, type: Int, roomBean: RoomBean) {
             direction
         )
     }
+
 }

@@ -1,7 +1,6 @@
 package com.mary.myapplication
 
 import android.os.Bundle
-import android.widget.Adapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,7 +17,6 @@ import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.RenderingUtil
 import com.mary.myapplication.util.ThreadUtil
 import org.json.JSONArray
-import java.util.*
 import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {

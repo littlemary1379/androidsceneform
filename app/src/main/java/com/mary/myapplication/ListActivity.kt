@@ -2,24 +2,38 @@ package com.mary.myapplication
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.os.Bundle
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Rect
+import android.os.*
+import android.view.PixelCopy
+import android.view.PixelCopy.request
+import android.view.View
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.ar.core.ArCoreApk
 import com.google.ar.core.exceptions.*
+import com.google.ar.sceneform.SceneView
 import com.mary.myapplication.bean.data.RoomBean
 import com.mary.myapplication.customView.CustomHorizontalScrollViewDisableTouch
+import com.mary.myapplication.customView.SimpleNavigationBarViewHolder
 import com.mary.myapplication.util.ActivityUtil
 import com.mary.myapplication.util.DisplayUtil
 import com.mary.myapplication.util.DlogUtil
 import com.mary.myapplication.util.PermissionCheckUtil
+import com.mary.myapplication.viewholder.PopupViewHolder
 import com.mary.myapplication.viewholder.RenderingViewHolder
 import org.json.JSONObject
+import java.io.FileOutputStream
 
 class ListActivity : AppCompatActivity() {
     private val TAG = "ListActivity"
+
+    private lateinit var frameLayoutNavigation: FrameLayout
 
     private lateinit var linearLayout3D: LinearLayout
     private lateinit var linearLayoutFloor: LinearLayout
@@ -28,6 +42,10 @@ class ListActivity : AppCompatActivity() {
     private lateinit var frameLayoutFloor: FrameLayout
     private lateinit var frameLayoutWall: FrameLayout
 
+    private lateinit var frameLayoutShare: FrameLayout
+    private lateinit var popupViewHolder: PopupViewHolder
+
+
     private lateinit var horizontalScrollView: CustomHorizontalScrollViewDisableTouch
 
     private var installRequest: Boolean = false
@@ -35,6 +53,8 @@ class ListActivity : AppCompatActivity() {
     private lateinit var renderingViewHolder3D: RenderingViewHolder
     private lateinit var renderingViewHolderFloor: RenderingViewHolder
     private lateinit var renderingViewHolderWall: RenderingViewHolder
+
+    private lateinit var simpleNavigationBarViewHolder: SimpleNavigationBarViewHolder
 
     private var isNew = false
     private lateinit var roomBean: RoomBean
@@ -50,6 +70,7 @@ class ListActivity : AppCompatActivity() {
         permissionCheck()
         checkARcore()
 
+        initNavigation()
         initSceneView()
         initScreenWidth()
 
@@ -71,6 +92,9 @@ class ListActivity : AppCompatActivity() {
     }
 
     private fun findView() {
+
+        frameLayoutNavigation = findViewById(R.id.frameLayoutNavigationBar)
+
         linearLayout3D = findViewById(R.id.linearLayout3D)
         linearLayoutFloor = findViewById(R.id.linearLayoutFloor)
 
@@ -78,7 +102,10 @@ class ListActivity : AppCompatActivity() {
         frameLayoutFloor = findViewById(R.id.frameLayoutFloor)
         frameLayoutWall = findViewById(R.id.frameLayoutWall)
 
+        frameLayoutShare = findViewById(R.id.frameLayoutShare)
+
         horizontalScrollView = findViewById(R.id.horizontalScrollView)
+
     }
 
     private fun setListener() {
@@ -92,13 +119,32 @@ class ListActivity : AppCompatActivity() {
 
     }
 
-    private fun initSceneView() {
+    private fun initNavigation() {
+        simpleNavigationBarViewHolder = SimpleNavigationBarViewHolder(this)
+        simpleNavigationBarViewHolder.simpleNavigationBarViewHolderDelegate =
+            object : SimpleNavigationBarViewHolder.SimpleNavigationBarViewHolderDelegate {
+                override fun onLeftClick() {
 
+                }
+
+                @RequiresApi(Build.VERSION_CODES.O)
+                override fun onRightClick() {
+                    share()
+                }
+
+            }
+
+        simpleNavigationBarViewHolder.setImageViewRight(R.drawable.i_share)
+        frameLayoutNavigation.addView(simpleNavigationBarViewHolder.getView())
+    }
+
+    private fun initSceneView() {
 
         renderingViewHolder3D = RenderingViewHolder(this, RenderingViewHolder.TYPE_3D, roomBean)
         frameLayout3D.addView(renderingViewHolder3D.view)
 
-        renderingViewHolderFloor = RenderingViewHolder(this, RenderingViewHolder.TYPE_FLOOR, roomBean)
+        renderingViewHolderFloor =
+            RenderingViewHolder(this, RenderingViewHolder.TYPE_FLOOR, roomBean)
         frameLayoutFloor.addView(renderingViewHolderFloor.view)
 
         renderingViewHolderWall = RenderingViewHolder(this, RenderingViewHolder.TYPE_WALL, roomBean)
@@ -205,5 +251,58 @@ class ListActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun share() {
+        frameLayoutShare.visibility = View.VISIBLE
+        popupViewHolder = PopupViewHolder(this)
+        floorCapture()
+        popupViewHolder.updateView(roomBean)
+        frameLayoutShare.addView(popupViewHolder.view)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun floorCapture() {
+
+        var view: SceneView = renderingViewHolderFloor.sceneView
+
+        var bitmap: Bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+
+        var location = IntArray(2)
+        frameLayoutFloor.getLocationInWindow(location)
+
+        try {
+            request(view, bitmap, {
+                if (it == PixelCopy.SUCCESS) {
+                    DlogUtil.d(TAG, "됐나?? $bitmap")
+                    setBitmap(bitmap)
+                } else {
+                    when (it) {
+                        PixelCopy.ERROR_DESTINATION_INVALID -> {
+                            DlogUtil.d(TAG, "ERROR_DESTINATION_INVALID")
+                        }
+                        PixelCopy.ERROR_SOURCE_INVALID -> {
+                            DlogUtil.d(TAG, "ERROR_SOURCE_INVALID")
+                        }
+                        PixelCopy.ERROR_SOURCE_NO_DATA -> {
+                            DlogUtil.d(TAG, "ERROR_SOURCE_NO_DATA")
+                        }
+                        PixelCopy.ERROR_TIMEOUT -> {
+                            DlogUtil.d(TAG, "ERROR_TIMEOUT")
+                        }
+                        PixelCopy.ERROR_UNKNOWN -> {
+                            DlogUtil.d(TAG, "ERROR_UNKNOWN")
+                        }
+                    }
+                }
+            }, Handler(Looper.getMainLooper()))
+        } catch (e: java.lang.Exception) {
+            e.message?.let { DlogUtil.d(TAG, it) }
+        }
+
+    }
+
+    private fun setBitmap(bitmap: Bitmap){
+        popupViewHolder.setImage(bitmap)
+    }
 
 }
